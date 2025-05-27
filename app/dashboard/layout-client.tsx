@@ -1,19 +1,37 @@
-```tsx file="app/dashboard/layout.tsx"
-[v0-no-op-code-block-prefix]import type { ReactNode } from "react"
+"use client"
+
+import type { ReactNode } from "react"
 import Link from "next/link"
-import { LogOut, Menu } from 'lucide-react'
+import { useRouter } from "next/navigation"
+import { LogOut, Menu } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { useAuth } from "@/contexts/auth-context"
 
-export default function DashboardLayout({
+export function DashboardLayoutClient({
   children,
 }: {
   children: ReactNode
 }) {
-  // Mock user data for display
-  const mockUser = {
-    firstName: "John",
-    email: "john.doe@example.com"
+  const { user, logout, loading } = useAuth()
+  const router = useRouter()
+
+  const handleLogout = async () => {
+    await logout()
+    router.push("/login")
+  }
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    router.push("/login")
+    return null
   }
 
   return (
@@ -61,15 +79,14 @@ export default function DashboardLayout({
           </div>
 
           <div className="mt-auto pt-4">
-            <Link href="/login">
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-red-500 hover:bg-red-50 hover:text-red-600"
-              >
-                <LogOut className="mr-2 h-5 w-5" />
-                Sign out
-              </Button>
-            </Link>
+            <Button
+              onClick={handleLogout}
+              variant="ghost"
+              className="w-full justify-start text-red-500 hover:bg-red-50 hover:text-red-600"
+            >
+              <LogOut className="mr-2 h-5 w-5" />
+              Sign out
+            </Button>
           </div>
         </nav>
       </aside>
@@ -88,11 +105,13 @@ export default function DashboardLayout({
 
           <div className="ml-auto flex items-center gap-4">
             <div className="text-sm">
-              <div className="font-medium">{mockUser.firstName}</div>
-              <div className="text-gray-500">{mockUser.email}</div>
+              <div className="font-medium">
+                {user.first_name} {user.last_name}
+              </div>
+              <div className="text-gray-500">{user.email}</div>
             </div>
             <div className="h-8 w-8 rounded-full bg-orange-500 text-white flex items-center justify-center">
-              {mockUser.firstName[0].toUpperCase()}
+              {user.first_name[0].toUpperCase()}
             </div>
           </div>
         </header>

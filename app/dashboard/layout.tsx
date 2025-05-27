@@ -1,10 +1,10 @@
-import type React from "react"
-import { ProtectedRoute } from "@/components/protected-route"
+import type { ReactNode } from "react"
+import { DashboardLayoutClient } from "./layout-client"
 
 export default function DashboardLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: ReactNode
 }) {
-  return <ProtectedRoute>{children}</ProtectedRoute>
+  return <DashboardLayoutClient>{children}</DashboardLayoutClient>
 }
