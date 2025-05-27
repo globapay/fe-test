@@ -1,154 +1,168 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Eye, EyeOff, ArrowRight, AlertCircle, Check, X } from "lucide-react"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Eye, EyeOff, ArrowRight, AlertCircle, Check, X } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import ProgressBar from "@/components/progress-bar"
-import { authService, type RegisterData } from "@/lib/auth"
-import { useToast } from "@/hooks/use-toast"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import ProgressBar from "@/components/progress-bar";
+import { apiClient } from "@/lib/api-client";
+import { RegisterRequest } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
 
 export default function RegisterStep4Page() {
-  const router = useRouter()
-  const { toast } = useToast()
+  const router = useRouter();
+  const { toast } = useToast();
 
   const [formData, setFormData] = useState({
     password: "",
     confirmPassword: "",
     agreeTerms: false,
-  })
-  const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [registrationData, setRegistrationData] = useState<any>(null)
-  const [error, setError] = useState<string | null>(null)
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [registrationData, setRegistrationData] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Password validation states
   const [passwordValidation, setPasswordValidation] = useState({
     minLength: false,
     hasUppercase: false,
     hasDigit: false,
-  })
+  });
 
   useEffect(() => {
     // Check if we have data from previous steps
-    const savedData = localStorage.getItem("registrationData")
+    const savedData = localStorage.getItem("registrationData");
     if (!savedData) {
       // For testing purposes, we'll initialize with empty data instead of redirecting
       localStorage.setItem(
         "registrationData",
         JSON.stringify({
-          firstName: "Test",
-          lastName: "User",
+          first_name: "Test",
+          last_name: "User",
           email: "test@example.com",
-          companyName: "Test Company",
-          tradingName: "",
-          vatNumber: "",
+          company_name: "Test Company",
+          trading_name: "",
+          vat_number: 0,
           currency: "GBP",
-          address: "123 Test St",
+          number_of_locations: 1,
+          company_logo: "",
+          street_address: "123 Test St",
           city: "Test City",
           state: "Test State",
-          postalCode: "12345",
+          postal_code: "12345",
           country: "United Kingdom",
-        }),
-      )
+        })
+      );
 
       setRegistrationData({
-        firstName: "Test",
-        lastName: "User",
+        first_name: "Test",
+        last_name: "User",
         email: "test@example.com",
-        companyName: "Test Company",
-        tradingName: "",
-        vatNumber: "",
+        company_name: "Test Company",
+        trading_name: "",
+        vat_number: 0,
         currency: "GBP",
-        address: "123 Test St",
+        number_of_locations: 1,
+        company_logo: "",
+        street_address: "123 Test St",
         city: "Test City",
         state: "Test State",
-        postalCode: "12345",
+        postal_code: "12345",
         country: "United Kingdom",
-      })
+      });
     } else {
-      setRegistrationData(JSON.parse(savedData))
+      setRegistrationData(JSON.parse(savedData));
     }
-  }, [router])
+  }, [router]);
 
   // Validate password as user types
   useEffect(() => {
-    const password = formData.password
+    const password = formData.password;
     setPasswordValidation({
       minLength: password.length >= 10,
       hasUppercase: /[A-Z]/.test(password),
       hasDigit: /[0-9]/.test(password),
-    })
-  }, [formData.password])
+    });
+  }, [formData.password]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleCheckboxChange = (checked: boolean) => {
-    setFormData((prev) => ({ ...prev, agreeTerms: checked }))
-  }
+    setFormData((prev) => ({ ...prev, agreeTerms: checked }));
+  };
 
   const isPasswordValid = () => {
-    return passwordValidation.minLength && passwordValidation.hasUppercase && passwordValidation.hasDigit
-  }
+    return (
+      passwordValidation.minLength &&
+      passwordValidation.hasUppercase &&
+      passwordValidation.hasDigit
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
+    e.preventDefault();
+    setError(null);
 
     if (!registrationData) {
-      setError("Missing registration data. Please start over.")
-      return
+      setError("Missing registration data. Please start over.");
+      return;
     }
 
     if (!isPasswordValid()) {
-      setError("Please ensure your password meets all the requirements.")
-      return
+      setError("Please ensure your password meets all the requirements.");
+      return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords don't match. Please make sure your passwords match.")
-      return
+      setError("Passwords don't match. Please make sure your passwords match.");
+      return;
     }
 
     if (!formData.agreeTerms) {
-      setError("You must agree to the terms and conditions.")
-      return
+      setError("You must agree to the terms and conditions.");
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
 
     try {
-      const registerPayload: RegisterData = {
+      const registerPayload: RegisterRequest = {
         ...registrationData,
         password: formData.password,
-      }
+      };
 
-      await authService.register(registerPayload)
+      const response = await apiClient.register(registerPayload);
+      if (response.error) {
+        throw new Error(response.error);
+      }
 
       toast({
         title: "Registration successful",
         description: "Please check your email to verify your account",
-      })
+      });
 
       // Redirect to success page
-      router.push("/register/success")
+      router.push("/register/success");
     } catch (error: any) {
-      console.error("Registration error:", error)
-      setError(error.response?.data?.message || "An unexpected error occurred. Please try again later.")
+      console.error("Registration error:", error);
+      setError(
+        error.message || "An unexpected error occurred. Please try again later."
+      );
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-[#f0f5fa]">
@@ -158,11 +172,12 @@ export default function RegisterStep4Page() {
           <span className="text-2xl font-bold text-orange-500">GiftFlow</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600">Already have an account?</span>
+          <span className="text-sm text-gray-600">
+            Already have an account?
+          </span>
           <Link
             href="/login"
-            className="rounded-md border border-orange-500 px-4 py-2 text-sm font-medium text-orange-500 hover:bg-orange-50"
-          >
+            className="rounded-md border border-orange-500 px-4 py-2 text-sm font-medium text-orange-500 hover:bg-orange-50">
             Log in
           </Link>
         </div>
@@ -177,8 +192,12 @@ export default function RegisterStep4Page() {
       <div className="mx-auto mt-8 w-full max-w-3xl px-4 pb-16">
         <div className="overflow-hidden rounded-lg bg-white p-8 shadow-sm">
           <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-gray-900">Create password</h1>
-            <div className="rounded-full bg-orange-100 px-4 py-1 text-sm font-medium text-orange-500">Step 4 of 4</div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Create password
+            </h1>
+            <div className="rounded-full bg-orange-100 px-4 py-1 text-sm font-medium text-orange-500">
+              Step 4 of 4
+            </div>
           </div>
 
           {error && (
@@ -189,10 +208,14 @@ export default function RegisterStep4Page() {
           )}
 
           <form onSubmit={handleSubmit} className="mt-8">
-            <h2 className="text-xl font-semibold text-gray-800">Account Security</h2>
+            <h2 className="text-xl font-semibold text-gray-800">
+              Account Security
+            </h2>
 
             <div className="mt-6">
-              <label htmlFor="password" className="mb-1 block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="password"
+                className="mb-1 block text-sm font-medium text-gray-700">
                 Password <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -210,8 +233,7 @@ export default function RegisterStep4Page() {
                   type="button"
                   className="absolute inset-y-0 right-0 flex items-center pr-3"
                   onClick={() => setShowPassword(!showPassword)}
-                  disabled={loading}
-                >
+                  disabled={loading}>
                   {showPassword ? (
                     <EyeOff className="h-5 w-5 text-gray-400" />
                   ) : (
@@ -229,7 +251,12 @@ export default function RegisterStep4Page() {
                   ) : (
                     <X className="h-4 w-4 text-gray-400" />
                   )}
-                  <span className={passwordValidation.minLength ? "text-green-600" : "text-gray-600"}>
+                  <span
+                    className={
+                      passwordValidation.minLength
+                        ? "text-green-600"
+                        : "text-gray-600"
+                    }>
                     Be at least 10 characters long
                   </span>
                 </div>
@@ -239,7 +266,12 @@ export default function RegisterStep4Page() {
                   ) : (
                     <X className="h-4 w-4 text-gray-400" />
                   )}
-                  <span className={passwordValidation.hasUppercase ? "text-green-600" : "text-gray-600"}>
+                  <span
+                    className={
+                      passwordValidation.hasUppercase
+                        ? "text-green-600"
+                        : "text-gray-600"
+                    }>
                     Include at least one uppercase letter
                   </span>
                 </div>
@@ -249,7 +281,12 @@ export default function RegisterStep4Page() {
                   ) : (
                     <X className="h-4 w-4 text-gray-400" />
                   )}
-                  <span className={passwordValidation.hasDigit ? "text-green-600" : "text-gray-600"}>
+                  <span
+                    className={
+                      passwordValidation.hasDigit
+                        ? "text-green-600"
+                        : "text-gray-600"
+                    }>
                     Include at least one digit
                   </span>
                 </div>
@@ -257,7 +294,9 @@ export default function RegisterStep4Page() {
             </div>
 
             <div className="mt-6">
-              <label htmlFor="confirmPassword" className="mb-1 block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="confirmPassword"
+                className="mb-1 block text-sm font-medium text-gray-700">
                 Confirm Password <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -282,7 +321,9 @@ export default function RegisterStep4Page() {
                 className="h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500"
                 disabled={loading}
               />
-              <label htmlFor="agreeTerms" className="ml-2 block text-sm text-gray-700">
+              <label
+                htmlFor="agreeTerms"
+                className="ml-2 block text-sm text-gray-700">
                 I agree to the{" "}
                 <a href="#" className="text-orange-600 hover:text-orange-500">
                   Terms of Service
@@ -300,36 +341,31 @@ export default function RegisterStep4Page() {
                 onClick={() => router.push("/register/step3")}
                 className="px-6 py-2 text-sm font-medium text-orange-500 hover:text-orange-600"
                 variant="ghost"
-                disabled={loading}
-              >
+                disabled={loading}>
                 Back
               </Button>
               <Button
                 type="submit"
                 disabled={loading}
-                className="flex items-center gap-2 rounded-md bg-orange-500 px-6 py-2 text-white hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
-              >
+                className="flex items-center gap-2 rounded-md bg-orange-500 px-6 py-2 text-white hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2">
                 {loading ? (
                   <>
                     <svg
                       className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
-                      viewBox="0 0 24 24"
-                    >
+                      viewBox="0 0 24 24">
                       <circle
                         className="opacity-25"
                         cx="12"
                         cy="12"
                         r="10"
                         stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
+                        strokeWidth="4"></circle>
                       <path
                         className="opacity-75"
                         fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                     Creating account...
                   </>
@@ -345,5 +381,5 @@ export default function RegisterStep4Page() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,33 +1,33 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { Check, RefreshCw } from "lucide-react"
+import { useState } from "react";
+import Link from "next/link";
+import { Check, RefreshCw } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { authService } from "@/lib/auth"
-import { useToast } from "@/hooks/use-toast"
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { apiClient } from "@/lib/api-client";
+import { useToast } from "@/hooks/use-toast";
 
 export default function RegisterSuccessPage() {
-  const [resending, setResending] = useState(false)
-  const [email, setEmail] = useState("")
-  const { toast } = useToast()
+  const [resending, setResending] = useState(false);
+  const [email, setEmail] = useState("");
+  const { toast } = useToast();
 
   // Try to get the email from localStorage if available
   useState(() => {
     try {
-      const registrationData = localStorage.getItem("registrationData")
+      const registrationData = localStorage.getItem("registrationData");
       if (registrationData) {
-        const data = JSON.parse(registrationData)
+        const data = JSON.parse(registrationData);
         if (data.email) {
-          setEmail(data.email)
+          setEmail(data.email);
         }
       }
     } catch (error) {
-      console.error("Error retrieving email from localStorage:", error)
+      console.error("Error retrieving email from localStorage:", error);
     }
-  })
+  });
 
   const handleResendVerification = async () => {
     if (!email) {
@@ -35,29 +35,32 @@ export default function RegisterSuccessPage() {
         title: "Email not found",
         description: "Please log in to request a new verification email",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    setResending(true)
+    setResending(true);
     try {
-      await authService.resendVerification(email)
+      const response = await apiClient.resendVerification();
+      if (response.error) {
+        throw new Error(response.error);
+      }
 
       toast({
         title: "Verification email sent",
         description: "Please check your inbox and spam folder",
-      })
+      });
     } catch (error: any) {
-      console.error("Error resending verification:", error)
+      console.error("Error resending verification:", error);
       toast({
         title: "Error",
-        description: error.response?.data?.message || "An unexpected error occurred",
+        description: error.message || "An unexpected error occurred",
         variant: "destructive",
-      })
+      });
     } finally {
-      setResending(false)
+      setResending(false);
     }
-  }
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-[#f0f5fa]">
@@ -73,10 +76,12 @@ export default function RegisterSuccessPage() {
           <Check className="h-8 w-8 text-green-600" />
         </div>
 
-        <h1 className="mt-6 text-3xl font-bold text-gray-900">Account created!</h1>
+        <h1 className="mt-6 text-3xl font-bold text-gray-900">
+          Account created!
+        </h1>
         <p className="mt-4 text-base text-gray-600">
-          We've sent you an email with a verification link. Please check your inbox and spam folder to verify your
-          account.
+          We've sent you an email with a verification link. Please check your
+          inbox and spam folder to verify your account.
         </p>
 
         <Alert className="mt-6 bg-blue-50 border-blue-200">
@@ -97,8 +102,7 @@ export default function RegisterSuccessPage() {
             onClick={handleResendVerification}
             disabled={resending}
             variant="outline"
-            className="flex items-center justify-center gap-2"
-          >
+            className="flex items-center justify-center gap-2">
             {resending ? (
               <>
                 <RefreshCw className="h-4 w-4 animate-spin" />
@@ -120,5 +124,5 @@ export default function RegisterSuccessPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

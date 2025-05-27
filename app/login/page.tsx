@@ -1,86 +1,96 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Eye, EyeOff, ArrowRight, AlertCircle } from "lucide-react"
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Eye, EyeOff, ArrowRight, AlertCircle } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useAuth } from "@/contexts/auth-context"
-import { useToast } from "@/hooks/use-toast"
-import { authService } from "@/lib/auth"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { apiClient } from "@/lib/api-client";
+import { useToast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [step, setStep] = useState<"login" | "verify">("login")
-  const [verificationCode, setVerificationCode] = useState("")
-  const [error, setError] = useState<string | null>(null)
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState<"login" | "verify">("login");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
-  const router = useRouter()
-  const { login } = useAuth()
-  const { toast } = useToast()
+  const router = useRouter();
+  const { toast } = useToast();
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-    setLoading(true)
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
 
     try {
-      await login(email, password)
+      const response = await apiClient.login(email, password);
+      if (response.error) {
+        throw new Error(response.error);
+      }
 
       toast({
         title: "Login successful",
         description: "Redirecting to dashboard...",
-      })
+      });
 
-      router.push("/dashboard")
+      router.push("/dashboard");
     } catch (error: any) {
-      console.error("Login error:", error)
+      console.error("Login error:", error);
 
       // Check if account needs verification
-      if (error.response?.status === 403 && error.response?.data?.detail?.includes("not verified")) {
-        setStep("verify")
+      if (error.message?.includes("not verified")) {
+        setStep("verify");
         toast({
           title: "Account verification required",
-          description: "Please verify your account with the code sent to your email",
-        })
+          description:
+            "Please verify your account with the code sent to your email",
+        });
       } else {
-        setError(error.response?.data?.detail || "Invalid email or password. Please try again.")
+        setError(
+          error.message || "Invalid email or password. Please try again."
+        );
       }
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleVerify = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-    setLoading(true)
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
 
     try {
-      await authService.verifyEmail(email, verificationCode)
+      const response = await apiClient.verifyEmail(email, verificationCode);
+      if (response.error) {
+        throw new Error(response.error);
+      }
 
       toast({
         title: "Account verified successfully",
         description: "You can now log in",
-      })
+      });
 
-      setStep("login")
-      setVerificationCode("")
+      setStep("login");
+      setVerificationCode("");
     } catch (error: any) {
-      console.error("Verification error:", error)
-      setError(error.response?.data?.detail || "Invalid or expired verification code. Please try again.")
+      console.error("Verification error:", error);
+      setError(
+        error.message ||
+          "Invalid or expired verification code. Please try again."
+      );
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-[#f0f5fa]">
@@ -93,8 +103,7 @@ export default function LoginPage() {
           <span className="text-sm text-gray-600">Don't have an account?</span>
           <Link
             href="/register"
-            className="rounded-md border border-orange-500 px-4 py-2 text-sm font-medium text-orange-500 hover:bg-orange-50"
-          >
+            className="rounded-md border border-orange-500 px-4 py-2 text-sm font-medium text-orange-500 hover:bg-orange-50">
             Sign up
           </Link>
         </div>
@@ -105,7 +114,9 @@ export default function LoginPage() {
           {step === "login" ? (
             <>
               <h1 className="text-3xl font-bold text-gray-900">Welcome back</h1>
-              <p className="mt-2 text-sm text-gray-600">Sign in to your account to continue</p>
+              <p className="mt-2 text-sm text-gray-600">
+                Sign in to your account to continue
+              </p>
 
               {error && (
                 <Alert variant="destructive" className="mt-4">
@@ -116,7 +127,9 @@ export default function LoginPage() {
 
               <form onSubmit={handleLogin} className="mt-8 space-y-6">
                 <div>
-                  <label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="email"
+                    className="mb-1 block text-sm font-medium text-gray-700">
                     Email address
                   </label>
                   <div className="relative">
@@ -131,8 +144,7 @@ export default function LoginPage() {
                           stroke="currentColor"
                           strokeWidth="2"
                           strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
+                          strokeLinejoin="round">
                           <rect width="20" height="16" x="2" y="4" rx="2" />
                           <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
                         </svg>
@@ -155,10 +167,14 @@ export default function LoginPage() {
 
                 <div>
                   <div className="flex items-center justify-between">
-                    <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                    <label
+                      htmlFor="password"
+                      className="block text-sm font-medium text-gray-700">
                       Password
                     </label>
-                    <Link href="/forgot-password" className="text-sm font-medium text-orange-600 hover:text-orange-500">
+                    <Link
+                      href="/forgot-password"
+                      className="text-sm font-medium text-orange-600 hover:text-orange-500">
                       Forgot your password?
                     </Link>
                   </div>
@@ -178,8 +194,7 @@ export default function LoginPage() {
                       type="button"
                       className="absolute inset-y-0 right-0 flex items-center pr-3"
                       onClick={() => setShowPassword(!showPassword)}
-                      disabled={loading}
-                    >
+                      disabled={loading}>
                       {showPassword ? (
                         <EyeOff className="h-5 w-5 text-gray-400" />
                       ) : (
@@ -193,29 +208,25 @@ export default function LoginPage() {
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="flex w-full items-center justify-center gap-2 rounded-md bg-orange-500 px-6 py-3 text-white hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
-                  >
+                    className="flex w-full items-center justify-center gap-2 rounded-md bg-orange-500 px-6 py-3 text-white hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2">
                     {loading ? (
                       <>
                         <svg
                           className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
                           xmlns="http://www.w3.org/2000/svg"
                           fill="none"
-                          viewBox="0 0 24 24"
-                        >
+                          viewBox="0 0 24 24">
                           <circle
                             className="opacity-25"
                             cx="12"
                             cy="12"
                             r="10"
                             stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
+                            strokeWidth="4"></circle>
                           <path
                             className="opacity-75"
                             fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
                         Signing in...
                       </>
@@ -231,8 +242,12 @@ export default function LoginPage() {
             </>
           ) : (
             <>
-              <h1 className="text-3xl font-bold text-gray-900">Verify your account</h1>
-              <p className="mt-2 text-sm text-gray-600">Enter the verification code sent to your email</p>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Verify your account
+              </h1>
+              <p className="mt-2 text-sm text-gray-600">
+                Enter the verification code sent to your email
+              </p>
 
               {error && (
                 <Alert variant="destructive" className="mt-4">
@@ -243,7 +258,9 @@ export default function LoginPage() {
 
               <form onSubmit={handleVerify} className="mt-8 space-y-6">
                 <div>
-                  <label htmlFor="verification-code" className="mb-1 block text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="verification-code"
+                    className="mb-1 block text-sm font-medium text-gray-700">
                     Verification Code
                   </label>
                   <Input
@@ -263,29 +280,25 @@ export default function LoginPage() {
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="flex w-full items-center justify-center gap-2 rounded-md bg-orange-500 px-6 py-3 text-white hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
-                  >
+                    className="flex w-full items-center justify-center gap-2 rounded-md bg-orange-500 px-6 py-3 text-white hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2">
                     {loading ? (
                       <>
                         <svg
                           className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
                           xmlns="http://www.w3.org/2000/svg"
                           fill="none"
-                          viewBox="0 0 24 24"
-                        >
+                          viewBox="0 0 24 24">
                           <circle
                             className="opacity-25"
                             cx="12"
                             cy="12"
                             r="10"
                             stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
+                            strokeWidth="4"></circle>
                           <path
                             className="opacity-75"
                             fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
                         Verifying...
                       </>
@@ -303,8 +316,7 @@ export default function LoginPage() {
                     type="button"
                     onClick={() => setStep("login")}
                     className="text-sm font-medium text-orange-600 hover:text-orange-500"
-                    disabled={loading}
-                  >
+                    disabled={loading}>
                     Back to login
                   </button>
                 </div>
@@ -314,5 +326,5 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
