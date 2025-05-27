@@ -5,13 +5,13 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { Eye, EyeOff, ArrowRight, AlertCircle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { apiClient } from "@/lib/api-client"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -24,21 +24,13 @@ export default function LoginPage() {
 
   const router = useRouter()
   const { toast } = useToast()
-  const supabase = createClientComponentClient()
 
   // Check if user is already logged in
   useEffect(() => {
-    const checkSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      if (session) {
-        router.push("/dashboard")
-      }
+    if (apiClient.isAuthenticated()) {
+      router.push("/dashboard")
     }
-
-    checkSession()
-  }, [router, supabase.auth])
+  }, [router])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -46,41 +38,22 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      // Add artificial delay to prevent timing attacks
-      const delayPromise = new Promise((resolve) => setTimeout(resolve, 1000))
+      const response = await apiClient.login(email, password)
 
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-
-      await delayPromise // Ensure minimum processing time
-
-      if (error) {
-        // Use generic error message to prevent user enumeration
-        setError("Invalid email or password. Please try again.")
+      if (response.error) {
+        setError(response.error)
         return
       }
 
-      // Send 2FA verification email
-      const { error: emailError } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          shouldCreateUser: false,
-        },
-      })
+      if (response.data) {
+        toast({
+          title: "Login successful",
+          description: "Redirecting to dashboard...",
+        })
 
-      if (emailError) {
-        // Use generic error message
-        setError("We couldn't send a verification code. Please try again.")
-        return
+        router.push("/dashboard")
+        router.refresh()
       }
-
-      setStep("verify")
-      toast({
-        title: "Verification email sent",
-        description: "Please check your email for a verification code",
-      })
     } catch (error) {
       console.error("Login error:", error)
       setError("An unexpected error occurred. Please try again later.")
@@ -95,35 +68,27 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      const { error } = await supabase.auth.verifyOtp({
+      const response = await apiClient.verifyAccount({
         email,
-        token: verificationCode,
-        type: "email",
+        verification_code: verificationCode,
       })
 
-      if (error) {
-        setError("Invalid or expired verification code. Please try again.")
-        setLoading(false)
+      if (response.error) {
+        setError(response.error)
         return
       }
 
       toast({
-        title: "Login successful",
-        description: "Redirecting to dashboard...",
+        title: "Account verified",
+        description: "Please log in with your credentials",
       })
 
-      // Force a refresh of the session
-      await supabase.auth.getSession()
-
-      // Redirect to dashboard
-      router.push("/dashboard")
-      router.refresh()
-
-      // Keep loading state active until redirect completes
-      // Don't set loading to false here to maintain the loading state during redirect
+      setStep("login")
+      setVerificationCode("")
     } catch (error) {
       console.error("Verification error:", error)
       setError("An unexpected error occurred. Please try again later.")
+    } finally {
       setLoading(false)
     }
   }
@@ -274,10 +239,21 @@ export default function LoginPage() {
                   </Button>
                 </div>
               </form>
+
+              <div className="mt-6 text-center">
+                <button
+                  type="button"
+                  onClick={() => setStep("verify")}
+                  className="text-sm font-medium text-orange-600 hover:text-orange-500"
+                  disabled={loading}
+                >
+                  Need to verify your account?
+                </button>
+              </div>
             </>
           ) : (
             <>
-              <h1 className="text-3xl font-bold text-gray-900">Verify your identity</h1>
+              <h1 className="text-3xl font-bold text-gray-900">Verify your account</h1>
               <p className="mt-2 text-sm text-gray-600">Enter the verification code sent to your email</p>
 
               {error && (
@@ -288,6 +264,23 @@ export default function LoginPage() {
               )}
 
               <form onSubmit={handleVerify} className="mt-8 space-y-6">
+                <div>
+                  <label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700">
+                    Email address
+                  </label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="mt-1 block w-full rounded-md border border-gray-300 py-2 shadow-sm focus:border-orange-500 focus:ring-orange-500"
+                    placeholder="you@example.com"
+                    disabled={loading}
+                  />
+                </div>
+
                 <div>
                   <label htmlFor="verification-code" className="mb-1 block text-sm font-medium text-gray-700">
                     Verification Code
@@ -362,4 +355,3 @@ export default function LoginPage() {
     </div>
   )
 }
-

@@ -43,4 +43,3 @@ export default function ProgressBar({ currentStep, totalSteps }: ProgressBarProp
     </div>
   )
 }
-

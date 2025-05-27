@@ -1,44 +1,38 @@
-import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs"
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
-export async function middleware(req: NextRequest) {
-  const res = NextResponse.next()
-  const supabase = createMiddlewareClient({ req, res })
+export function middleware(request: NextRequest) {
+  // Get the pathname of the request (e.g. /, /dashboard, /login)
+  const path = request.nextUrl.pathname
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  // Define paths that should be publicly accessible
+  const publicPaths = ["/login", "/register", "/forgot-password", "/reset-password", "/api", "/_next", "/favicon.ico"]
 
-  // Check auth condition
-  const isAuthRoute =
-    req.nextUrl.pathname.startsWith("/login") ||
-    req.nextUrl.pathname.startsWith("/register") ||
-    req.nextUrl.pathname.startsWith("/forgot-password") ||
-    req.nextUrl.pathname.startsWith("/reset-password")
+  // Check if the path is public
+  const isPublicPath = publicPaths.some((publicPath) => path.startsWith(publicPath))
 
-  // Allow access to test navigation page
-  const isTestNavigation = req.nextUrl.pathname.startsWith("/test-navigation")
+  // Get token from localStorage (this won't work in middleware, so we'll check on client side)
+  // For now, we'll let the client-side handle authentication checks
 
-  // If accessing a protected route without being logged in
-  if (!session && !isAuthRoute && !isTestNavigation && req.nextUrl.pathname !== "/") {
-    const redirectUrl = req.nextUrl.clone()
-    redirectUrl.pathname = "/login"
-    redirectUrl.searchParams.set(`redirectedFrom`, req.nextUrl.pathname)
-    return NextResponse.redirect(redirectUrl)
+  // If it's a public path, allow access
+  if (isPublicPath) {
+    return NextResponse.next()
   }
 
-  // If accessing auth routes while logged in
-  if (session && isAuthRoute) {
-    const redirectUrl = req.nextUrl.clone()
-    redirectUrl.pathname = "/dashboard"
-    return NextResponse.redirect(redirectUrl)
-  }
-
-  return res
+  // For protected paths, we'll let the client-side components handle the auth check
+  // since we can't access localStorage in middleware
+  return NextResponse.next()
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\.svg).*)"],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    "/((?!api|_next/static|_next/image|favicon.ico).*)",
+  ],
 }
-

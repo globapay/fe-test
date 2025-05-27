@@ -4,75 +4,48 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { Eye, EyeOff, ArrowRight, AlertCircle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { apiClient } from "@/lib/api-client"
 
 export default function ResetPasswordPage() {
+  const [email, setEmail] = useState("")
+  const [resetToken, setResetToken] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [isTokenValid, setIsTokenValid] = useState(false)
 
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
-  const supabase = createClientComponentClient()
 
-  // Check if user has a valid reset token
+  // Get token and email from URL parameters
   useEffect(() => {
-    const checkToken = async () => {
-      setLoading(true)
+    const token = searchParams.get("token")
+    const emailParam = searchParams.get("email")
 
-      try {
-        // Get token from URL hash (Supabase adds it as a hash parameter)
-        const hash = window.location.hash
-        const hashParams = new URLSearchParams(hash.substring(1))
-        const accessToken = hashParams.get("access_token")
-        const refreshToken = hashParams.get("refresh_token")
-        const type = hashParams.get("type")
+    if (token) setResetToken(token)
+    if (emailParam) setEmail(emailParam)
 
-        if (!accessToken || type !== "recovery") {
-          setError("Invalid or expired password reset link. Please request a new one.")
-          setIsTokenValid(false)
-          return
-        }
-
-        // Verify the token by setting the session
-        const { error } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken || "",
-        })
-
-        if (error) {
-          console.error("Error verifying token:", error)
-          setError("Your password reset link has expired. Please request a new one.")
-          setIsTokenValid(false)
-          return
-        }
-
-        setIsTokenValid(true)
-      } catch (err) {
-        console.error("Error checking token:", err)
-        setError("An unexpected error occurred. Please try again.")
-        setIsTokenValid(false)
-      } finally {
-        setLoading(false)
-      }
+    if (!token) {
+      setError("Invalid or missing reset token. Please request a new password reset link.")
     }
-
-    checkToken()
-  }, [supabase])
+  }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+
+    if (!email || !resetToken) {
+      setError("Missing email or reset token. Please request a new password reset link.")
+      return
+    }
 
     if (password !== confirmPassword) {
       setError("Passwords don't match. Please make sure your passwords match.")
@@ -87,12 +60,14 @@ export default function ResetPasswordPage() {
     setLoading(true)
 
     try {
-      const { error } = await supabase.auth.updateUser({
-        password,
+      const response = await apiClient.resetPassword({
+        email,
+        reset_token: resetToken,
+        new_password: password,
       })
 
-      if (error) {
-        setError(error.message)
+      if (response.error) {
+        setError(response.error)
         return
       }
 
@@ -100,9 +75,6 @@ export default function ResetPasswordPage() {
         title: "Password updated successfully",
         description: "Your password has been reset. You can now log in with your new password.",
       })
-
-      // Sign out the user after password reset
-      await supabase.auth.signOut()
 
       // Redirect to login page after a short delay
       setTimeout(() => {
@@ -137,7 +109,7 @@ export default function ResetPasswordPage() {
             </Alert>
           )}
 
-          {!isTokenValid && !loading ? (
+          {!resetToken ? (
             <div className="mt-6">
               <Button
                 onClick={() => router.push("/forgot-password")}
@@ -148,6 +120,22 @@ export default function ResetPasswordPage() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+              <div>
+                <label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700">
+                  Email Address
+                </label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="block w-full rounded-md border border-gray-300 py-2 shadow-sm focus:border-orange-500 focus:ring-orange-500"
+                  disabled={loading}
+                />
+              </div>
+
               <div>
                 <label htmlFor="password" className="mb-1 block text-sm font-medium text-gray-700">
                   New Password
@@ -162,13 +150,13 @@ export default function ResetPasswordPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     className="block w-full rounded-md border border-gray-300 py-2 pr-10 shadow-sm focus:border-orange-500 focus:ring-orange-500"
                     minLength={8}
-                    disabled={loading || !isTokenValid}
+                    disabled={loading}
                   />
                   <button
                     type="button"
                     className="absolute inset-y-0 right-0 flex items-center pr-3"
                     onClick={() => setShowPassword(!showPassword)}
-                    disabled={loading || !isTokenValid}
+                    disabled={loading}
                   >
                     {showPassword ? (
                       <EyeOff className="h-5 w-5 text-gray-400" />
@@ -194,7 +182,7 @@ export default function ResetPasswordPage() {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className="block w-full rounded-md border border-gray-300 py-2 shadow-sm focus:border-orange-500 focus:ring-orange-500"
                     minLength={8}
-                    disabled={loading || !isTokenValid}
+                    disabled={loading}
                   />
                 </div>
               </div>
@@ -202,7 +190,7 @@ export default function ResetPasswordPage() {
               <div>
                 <Button
                   type="submit"
-                  disabled={loading || !isTokenValid}
+                  disabled={loading}
                   className="flex w-full items-center justify-center gap-2 rounded-md bg-orange-500 px-6 py-3 text-white hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
                 >
                   {loading ? "Updating..." : "Update password"}
@@ -216,4 +204,3 @@ export default function ResetPasswordPage() {
     </div>
   )
 }
-

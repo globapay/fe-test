@@ -10,4 +10,3 @@ export const getSupabaseClient = () => {
   }
   return supabaseClient
 }
-
