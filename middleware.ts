@@ -1,26 +1,62 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
+import { getTokenFromRequest, isTokenExpired } from "@/lib/auth-utils"
 
-export function middleware(request: NextRequest) {
-  // Get the pathname of the request (e.g. /, /dashboard, /login)
+export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname
 
   // Define paths that should be publicly accessible
-  const publicPaths = ["/login", "/register", "/forgot-password", "/reset-password", "/api", "/_next", "/favicon.ico"]
+  const publicPaths = ["/", "/login", "/register", "/forgot-password", "/reset-password", "/test-navigation"]
 
-  // Check if the path is public
-  const isPublicPath = publicPaths.some((publicPath) => path.startsWith(publicPath))
+  // Define paths that require authentication
+  const protectedPaths = ["/dashboard"]
 
-  // Get token from localStorage (this won't work in middleware, so we'll check on client side)
-  // For now, we'll let the client-side handle authentication checks
+  // Check if the current path is public
+  const isPublicPath = publicPaths.some((publicPath) => path === publicPath || path.startsWith(publicPath + "/"))
 
-  // If it's a public path, allow access
-  if (isPublicPath) {
+  // Check if the current path is protected
+  const isProtectedPath = protectedPaths.some((protectedPath) => path.startsWith(protectedPath))
+
+  // Allow access to API routes, static files, etc.
+  if (path.startsWith("/api") || path.startsWith("/_next") || path.startsWith("/favicon.ico") || path.includes(".")) {
     return NextResponse.next()
   }
 
-  // For protected paths, we'll let the client-side components handle the auth check
-  // since we can't access localStorage in middleware
+  // Get the access token from the request
+  const accessToken = getTokenFromRequest(request)
+
+  // If accessing a protected route
+  if (isProtectedPath) {
+    // No token found
+    if (!accessToken) {
+      const loginUrl = new URL("/login", request.url)
+      loginUrl.searchParams.set("redirectedFrom", path)
+      return NextResponse.redirect(loginUrl)
+    }
+
+    // Check if token is expired (basic client-side check)
+    if (isTokenExpired(accessToken)) {
+      const loginUrl = new URL("/login", request.url)
+      loginUrl.searchParams.set("redirectedFrom", path)
+      loginUrl.searchParams.set("reason", "expired")
+      return NextResponse.redirect(loginUrl)
+    }
+
+    // Token exists and appears valid, allow access
+    return NextResponse.next()
+  }
+
+  // If accessing auth routes while logged in, redirect to dashboard
+  if (isPublicPath && accessToken && !isTokenExpired(accessToken)) {
+    const authRoutes = ["/login", "/register", "/forgot-password"]
+    const isAuthRoute = authRoutes.some((route) => path.startsWith(route))
+
+    if (isAuthRoute) {
+      return NextResponse.redirect(new URL("/dashboard", request.url))
+    }
+  }
+
+  // Allow access to public paths
   return NextResponse.next()
 }
 

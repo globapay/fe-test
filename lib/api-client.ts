@@ -47,17 +47,34 @@ interface EmailRequest {
 
 class ApiClient {
   private baseUrl: string
-  private accessToken: string | null = null
-  private refreshToken: string | null = null
 
   constructor() {
     this.baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://devapi.globagift.io"
+  }
 
-    // Load tokens from localStorage if available
-    if (typeof window !== "undefined") {
-      this.accessToken = localStorage.getItem("access_token")
-      this.refreshToken = localStorage.getItem("refresh_token")
+  private getCookie(name: string): string | null {
+    if (typeof document === "undefined") return null
+
+    const value = `; ${document.cookie}`
+    const parts = value.split(`; ${name}=`)
+    if (parts.length === 2) {
+      return parts.pop()?.split(";").shift() || null
     }
+    return null
+  }
+
+  private setCookie(name: string, value: string, days = 7) {
+    if (typeof document === "undefined") return
+
+    const expires = new Date()
+    expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000)
+    document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;secure;samesite=strict`
+  }
+
+  private deleteCookie(name: string) {
+    if (typeof document === "undefined") return
+
+    document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;secure;samesite=strict`
   }
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
@@ -68,26 +85,33 @@ class ApiClient {
       ...options.headers,
     }
 
-    // Add authorization header if we have an access token
-    if (this.accessToken) {
-      headers["Authorization"] = `Bearer ${this.accessToken}`
+    // Get access token from cookie
+    const accessToken = this.getCookie("access_token")
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`
     }
 
     try {
       const response = await fetch(url, {
         ...options,
         headers,
+        credentials: "include", // Include cookies in requests
       })
 
       // Handle 401 - try to refresh token
-      if (response.status === 401 && this.refreshToken) {
+      if (response.status === 401 && this.getCookie("refresh_token")) {
         const refreshed = await this.refreshAccessToken()
         if (refreshed) {
           // Retry the original request with new token
-          headers["Authorization"] = `Bearer ${this.accessToken}`
+          const newAccessToken = this.getCookie("access_token")
+          if (newAccessToken) {
+            headers["Authorization"] = `Bearer ${newAccessToken}`
+          }
+
           const retryResponse = await fetch(url, {
             ...options,
             headers,
+            credentials: "include",
           })
 
           if (retryResponse.ok) {
@@ -98,7 +122,9 @@ class ApiClient {
 
         // If refresh failed, clear tokens and redirect to login
         this.clearTokens()
-        window.location.href = "/login"
+        if (typeof window !== "undefined") {
+          window.location.href = "/login"
+        }
         return { error: "Authentication failed" }
       }
 
@@ -116,23 +142,14 @@ class ApiClient {
   }
 
   private setTokens(accessToken: string, refreshToken: string) {
-    this.accessToken = accessToken
-    this.refreshToken = refreshToken
-
-    if (typeof window !== "undefined") {
-      localStorage.setItem("access_token", accessToken)
-      localStorage.setItem("refresh_token", refreshToken)
-    }
+    // Set cookies with appropriate expiration
+    this.setCookie("access_token", accessToken, 1) // 1 day for access token
+    this.setCookie("refresh_token", refreshToken, 7) // 7 days for refresh token
   }
 
   private clearTokens() {
-    this.accessToken = null
-    this.refreshToken = null
-
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("access_token")
-      localStorage.removeItem("refresh_token")
-    }
+    this.deleteCookie("access_token")
+    this.deleteCookie("refresh_token")
   }
 
   async register(data: RegisterUserRequest): Promise<ApiResponse<UserResponse>> {
@@ -168,13 +185,14 @@ class ApiClient {
   }
 
   async refreshAccessToken(): Promise<boolean> {
-    if (!this.refreshToken) return false
+    const refreshToken = this.getCookie("refresh_token")
+    if (!refreshToken) return false
 
     try {
       const response = await this.request<LoginResponse>("/users/refresh", {
         method: "POST",
         headers: {
-          "refresh-token": this.refreshToken,
+          "refresh-token": refreshToken,
         },
       })
 
@@ -213,15 +231,17 @@ class ApiClient {
 
   async logout() {
     this.clearTokens()
-    window.location.href = "/login"
+    if (typeof window !== "undefined") {
+      window.location.href = "/login"
+    }
   }
 
   isAuthenticated(): boolean {
-    return !!this.accessToken
+    return !!this.getCookie("access_token")
   }
 
   getAccessToken(): string | null {
-    return this.accessToken
+    return this.getCookie("access_token")
   }
 }
 

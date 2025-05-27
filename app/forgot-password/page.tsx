@@ -4,48 +4,26 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import { apiClient } from "@/lib/api-client"
+import { useAuth } from "@/lib/hooks/use-auth"
 
-export default function ForgotPassword() {
+export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const router = useRouter()
-  const supabase = createClientComponentClient()
-  const [submitted, setSubmitted] = useState(false)
+  const { forgotPassword } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError(null)
     setLoading(true)
+    setError(null)
 
     try {
-      // Add artificial delay to prevent timing attacks (consistent response time)
-      const delayPromise = new Promise((resolve) => setTimeout(resolve, 1000))
-
-      const response = await apiClient.forgotPassword(email)
-
-      await delayPromise // Ensure minimum processing time
-
-      // Always show success message even if email doesn't exist (prevents user enumeration)
-      setSubmitted(true)
-
-      // Only log the error, don't show it to the user
-      if (response.error) {
-        console.error("Password reset error:", response.error)
-        // We don't set the error state to prevent user enumeration
-      } else {
-        // toast({
-        //   title: "Email sent",
-        //   description: "Check your email for the password reset link",
-        // })
-        setSuccess(true) // Replaced toast with success state for now
-      }
-    } catch (error) {
-      console.error("Unexpected error:", error)
-      setError("An unexpected error occurred. Please try again later.")
+      await forgotPassword(email)
+      setSuccess(true)
+    } catch (e: any) {
+      setError(e.message || "An error occurred.")
     } finally {
       setLoading(false)
     }
@@ -55,8 +33,8 @@ export default function ForgotPassword() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 w-full max-w-md">
         <h2 className="text-2xl font-bold mb-6 text-center">Forgot Password</h2>
-        {success || submitted ? (
-          <div className="text-green-500 text-center mb-4">Check your email to reset your password.</div>
+        {success ? (
+          <div className="text-green-500 text-center mb-4">Password reset link sent to your email!</div>
         ) : (
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
@@ -72,12 +50,10 @@ export default function ForgotPassword() {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
-            {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
+            {error && <div className="text-red-500 text-sm mb-4 text-center">{error}</div>}
             <div className="flex items-center justify-between">
               <button
-                className={`bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ${
-                  loading ? "opacity-50 cursor-not-allowed" : ""
-                }`}
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
                 type="submit"
                 disabled={loading}
               >

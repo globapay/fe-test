@@ -1,19 +1,16 @@
-import { NextResponse } from "next/server"
+import { NextResponse } from "next/server";
 
 export async function POST() {
-  // Create response with redirect
-  const response = NextResponse.redirect(
-    new URL("/login", process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
-    {
-      headers: {
-        "Cache-Control": "no-store, max-age=0, must-revalidate",
-      },
-    },
-  )
+  try {
+    // Since we're using client-side token management,
+    // we just need to redirect to login
+    // The client will handle clearing tokens
 
-  // Clear any auth-related cookies if you're using them
-  response.cookies.delete("access_token")
-  response.cookies.delete("refresh_token")
+    const response = NextResponse.redirect("/login");
 
-  return response
+    return response;
+  } catch (error) {
+    console.error("Sign out error:", error);
+    return NextResponse.json({ error: "Sign out failed" }, { status: 500 });
+  }
 }

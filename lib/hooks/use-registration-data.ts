@@ -27,7 +27,7 @@ export function useRegistrationData() {
       try {
         setRegistrationData(JSON.parse(savedData))
       } catch (error) {
-        console.error("Error parsing registration data:", error)
+        console.error("Failed to parse registration data:", error)
         localStorage.removeItem("registrationData")
       }
     }

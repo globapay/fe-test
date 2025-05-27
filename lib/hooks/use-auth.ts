@@ -1,75 +1,130 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { apiClient, type UserResponse } from "@/lib/api-client"
+import { apiClient, type UserResponse, type RegisterUserRequest } from "@/lib/api-client"
+
+interface AuthState {
+  user: UserResponse | null
+  loading: boolean
+  isAuthenticated: boolean
+}
+
+interface AuthResult {
+  success: boolean
+  error?: string
+  user?: UserResponse
+}
 
 export function useAuth() {
-  const [user, setUser] = useState<UserResponse | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const router = useRouter()
+  const [authState, setAuthState] = useState<AuthState>({
+    user: null,
+    loading: true,
+    isAuthenticated: false,
+  })
 
   useEffect(() => {
-    const checkAuth = async () => {
-      if (!apiClient.isAuthenticated()) {
-        setLoading(false)
-        setIsAuthenticated(false)
-        return
-      }
-
-      try {
-        const response = await apiClient.getCurrentUser()
-        if (response.error) {
-          setIsAuthenticated(false)
-          setUser(null)
-        } else {
-          setIsAuthenticated(true)
-          setUser(response.data || null)
-        }
-      } catch (error) {
-        console.error("Auth check failed:", error)
-        setIsAuthenticated(false)
-        setUser(null)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    checkAuth()
+    checkAuthStatus()
   }, [])
 
-  const login = async (email: string, password: string) => {
-    const response = await apiClient.login(email, password)
-    if (response.data) {
-      setIsAuthenticated(true)
-      setUser(response.data.user)
-      return { success: true }
+  const checkAuthStatus = async () => {
+    if (!apiClient.isAuthenticated()) {
+      setAuthState({
+        user: null,
+        loading: false,
+        isAuthenticated: false,
+      })
+      return
     }
-    return { success: false, error: response.error }
+
+    try {
+      const response = await apiClient.getCurrentUser()
+      if (response.data) {
+        setAuthState({
+          user: response.data,
+          loading: false,
+          isAuthenticated: true,
+        })
+      } else {
+        // Token might be invalid, clear it
+        await apiClient.logout()
+        setAuthState({
+          user: null,
+          loading: false,
+          isAuthenticated: false,
+        })
+      }
+    } catch (error) {
+      console.error("Auth check failed:", error)
+      await apiClient.logout()
+      setAuthState({
+        user: null,
+        loading: false,
+        isAuthenticated: false,
+      })
+    }
+  }
+
+  const login = async (email: string, password: string): Promise<AuthResult> => {
+    try {
+      const response = await apiClient.login(email, password)
+      if (response.data) {
+        setAuthState({
+          user: response.data.user,
+          loading: false,
+          isAuthenticated: true,
+        })
+        return { success: true, user: response.data.user }
+      } else {
+        return { success: false, error: response.error || "Login failed" }
+      }
+    } catch (error) {
+      console.error("Login error:", error)
+      return { success: false, error: "Login failed" }
+    }
+  }
+
+  const register = async (data: RegisterUserRequest): Promise<AuthResult> => {
+    try {
+      const response = await apiClient.register(data)
+      if (response.data) {
+        return { success: true, user: response.data }
+      } else {
+        return { success: false, error: response.error || "Registration failed" }
+      }
+    } catch (error) {
+      console.error("Registration error:", error)
+      return { success: false, error: "Registration failed" }
+    }
   }
 
   const logout = async () => {
     await apiClient.logout()
-    setIsAuthenticated(false)
-    setUser(null)
-    router.push("/login")
+    setAuthState({
+      user: null,
+      loading: false,
+      isAuthenticated: false,
+    })
   }
 
-  const register = async (data: any) => {
-    const response = await apiClient.register(data)
-    if (response.data) {
-      return { success: true, user: response.data }
+  const forgotPassword = async (email: string): Promise<AuthResult> => {
+    try {
+      const response = await apiClient.forgotPassword(email)
+      if (response.error) {
+        return { success: false, error: response.error }
+      }
+      return { success: true }
+    } catch (error) {
+      console.error("Forgot password error:", error)
+      return { success: false, error: "Failed to send reset email" }
     }
-    return { success: false, error: response.error }
   }
 
   return {
-    user,
-    loading,
-    isAuthenticated,
+    ...authState,
     login,
-    logout,
     register,
+    logout,
+    forgotPassword,
+    checkAuthStatus,
   }
 }
