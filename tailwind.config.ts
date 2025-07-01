@@ -11,6 +11,9 @@ const config: Config = {
   theme: {
   	extend: {
   		colors: {
+				orange: {
+					'500': '#F97316',
+				},
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {

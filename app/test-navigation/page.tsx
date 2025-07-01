@@ -67,6 +67,15 @@ export default function TestNavigationPage() {
               </Link>
             </div>
           </div>
+
+          <div>
+            <h2 className="mb-4 text-xl font-semibold text-purple-600">Iframe Test</h2>
+            <div className="grid gap-3">
+              <Link href="/iframe" className="rounded-md bg-purple-100 px-4 py-2 text-purple-700 hover:bg-purple-200">
+                Iframe Page
+              </Link>
+            </div>
+          </div>
         </div>
 
         <div className="mt-8 text-center text-sm text-gray-500">
