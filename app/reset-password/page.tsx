@@ -9,6 +9,7 @@ import { Eye, EyeOff, ArrowRight, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import logo from "@/public/globagift-logo.png"
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("")
@@ -82,7 +83,7 @@ export default function ResetPasswordPage() {
       {/* Header */}
       <header className="flex items-center justify-between px-8 py-6">
         <div className="flex items-center">
-          <span className="text-2xl font-bold text-orange-500">GiftFlow</span>
+          <img alt="Globagift-logo" src={logo.src} className="h-[100px] w-auto" />
         </div>
       </header>
 

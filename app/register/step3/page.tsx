@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import ProgressBar from "@/components/progress-bar"
+import registerLogo from "@/public/globagift-logo.png"
 
 // List of countries
 const countries = [
@@ -125,7 +126,7 @@ export default function RegisterStep3Page() {
       {/* Header */}
       <header className="flex items-center justify-between px-8 py-6">
         <div className="flex items-center">
-          <span className="text-2xl font-bold text-orange-500">GiftFlow</span>
+            <img alt="Globagift-logo" src={registerLogo.src} className="h-[100px] w-auto" />
         </div>
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-600">Already have an account?</span>

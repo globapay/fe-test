@@ -13,6 +13,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { apiClient } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
 
+import logo from "@/public/globagift-logo.png"
+
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -97,7 +100,7 @@ export default function LoginPage() {
       {/* Header */}
       <header className="flex items-center justify-between px-8 py-6">
         <div className="flex items-center">
-          <span className="text-2xl font-bold text-orange-500">GiftFlow</span>
+            <img alt="Globagift-logo" src={logo.src} className="h-[100px] w-auto" />
         </div>
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-600">Don't have an account?</span>

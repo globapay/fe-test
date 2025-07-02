@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { apiClient } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
+import registerLogo from "@/public/globagift-logo.png"
 
 export default function RegisterSuccessPage() {
   const [resending, setResending] = useState(false);
@@ -67,7 +68,7 @@ export default function RegisterSuccessPage() {
       {/* Header */}
       <header className="flex items-center justify-between px-8 py-6">
         <div className="flex items-center">
-          <span className="text-2xl font-bold text-orange-500">GiftFlow</span>
+          <img alt="Globagift-logo" src={registerLogo.src} className="h-[100px] w-auto" />
         </div>
       </header>
 

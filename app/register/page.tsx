@@ -10,6 +10,7 @@ import { ArrowRight, User, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import ProgressBar from "@/components/progress-bar"
+import logo from "@/public/globagift-logo.png"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -38,7 +39,7 @@ export default function RegisterPage() {
       {/* Header */}
       <header className="flex items-center justify-between px-8 py-6">
         <div className="flex items-center">
-          <span className="text-2xl font-bold text-orange-500">GiftFlow</span>
+            <img alt="Globagift-logo" src={logo.src} className="h-[100px] w-auto" />
         </div>
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-600">Already have an account?</span>
