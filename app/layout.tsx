@@ -10,7 +10,7 @@ import { AuthProvider } from "@/contexts/auth-context"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "GiftFlow",
+  title: "Globagift",
   description: "Gift management platform",
     generator: 'v0.dev'
 }
