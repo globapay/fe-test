@@ -12,10 +12,9 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import ProgressBar from "@/components/progress-bar";
-import { apiClient } from "@/lib/api-client";
-import { RegisterRequest } from "@/lib/types";
+import { authMerchantRegister } from "@/services/auth/authApi";
 import { useToast } from "@/hooks/use-toast";
-import registerLogo from "@/public/globagift-logo.png"
+import registerLogo from "@/public/globagift-logo.png";
 
 export default function RegisterStep4Page() {
   const router = useRouter();
@@ -46,37 +45,37 @@ export default function RegisterStep4Page() {
       localStorage.setItem(
         "registrationData",
         JSON.stringify({
-          first_name: "Test",
-          last_name: "User",
+          firstName: "Test",
+          lastName: "User",
           email: "test@example.com",
-          company_name: "Test Company",
-          trading_name: "",
-          vat_number: 0,
+          phone: "",
+          companyName: "Test Company",
+          tradingName: "",
+          vatNumber: "",
           currency: "GBP",
-          number_of_locations: 1,
-          company_logo: "",
-          street_address: "123 Test St",
+          locations: "1",
+          address: "123 Test St",
           city: "Test City",
           state: "Test State",
-          postal_code: "12345",
+          postalCode: "12345",
           country: "United Kingdom",
         })
       );
 
       setRegistrationData({
-        first_name: "Test",
-        last_name: "User",
+        firstName: "Test",
+        lastName: "User",
         email: "test@example.com",
-        company_name: "Test Company",
-        trading_name: "",
-        vat_number: 0,
+        phone: "",
+        companyName: "Test Company",
+        tradingName: "",
+        vatNumber: "",
         currency: "GBP",
-        number_of_locations: 1,
-        company_logo: "",
-        street_address: "123 Test St",
+        locations: "1",
+        address: "123 Test St",
         city: "Test City",
         state: "Test State",
-        postal_code: "12345",
+        postalCode: "12345",
         country: "United Kingdom",
       });
     } else {
@@ -138,20 +137,52 @@ export default function RegisterStep4Page() {
     setLoading(true);
 
     try {
-      const registerPayload: RegisterRequest = {
-        ...registrationData,
-        password: formData.password,
+      // Transform the data into the required API format
+      const registerPayload = {
+        merchant: {
+          first_name: registrationData.firstName || registrationData.first_name,
+          last_name: registrationData.lastName || registrationData.last_name,
+          email: registrationData.email,
+          password: formData.password,
+          phone: registrationData.phone || "",
+        },
+        company: {
+          name: registrationData.companyName || registrationData.company_name,
+          trading_name:
+            registrationData.tradingName || registrationData.trading_name || "",
+          vat_number:
+            registrationData.vatNumber || registrationData.vat_number || "",
+          currency: registrationData.currency,
+          number_of_locations: parseInt(
+            registrationData.locations ||
+              registrationData.number_of_locations ||
+              "0"
+          ),
+          street_address:
+            registrationData.address || registrationData.street_address,
+          state_address:
+            registrationData.state || registrationData.state_address || "",
+          zip_code:
+            registrationData.postalCode ||
+            registrationData.postal_code ||
+            registrationData.zip_code,
+          country: registrationData.country,
+        },
       };
 
-      const response = await apiClient.register(registerPayload);
-      if (response.error) {
-        throw new Error(response.error);
+      const response = await authMerchantRegister(registerPayload);
+
+      if (response.status_code !== 200 && response.status_code !== 201) {
+        throw new Error(response.detail || "Registration failed");
       }
 
       toast({
         title: "Registration successful",
         description: "Please check your email to verify your account",
       });
+
+      // Clear registration data from localStorage
+      localStorage.removeItem("registrationData");
 
       // Redirect to success page
       router.push("/register/success");
@@ -170,7 +201,11 @@ export default function RegisterStep4Page() {
       {/* Header */}
       <header className="flex items-center justify-between px-8 py-6">
         <div className="flex items-center">
-            <img alt="Globagift-logo" src={registerLogo.src} className="h-[100px] w-auto" />
+          <img
+            alt="Globagift-logo"
+            src={registerLogo.src}
+            className="h-[100px] w-auto"
+          />
         </div>
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-600">
@@ -178,7 +213,8 @@ export default function RegisterStep4Page() {
           </span>
           <Link
             href="/login"
-            className="rounded-md border border-orange-500 px-4 py-2 text-sm font-medium text-orange-500 hover:bg-orange-50">
+            className="rounded-md border border-orange-500 px-4 py-2 text-sm font-medium text-orange-500 hover:bg-orange-50"
+          >
             Log in
           </Link>
         </div>
@@ -216,7 +252,8 @@ export default function RegisterStep4Page() {
             <div className="mt-6">
               <label
                 htmlFor="password"
-                className="mb-1 block text-sm font-medium text-gray-700">
+                className="mb-1 block text-sm font-medium text-gray-700"
+              >
                 Password <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -234,7 +271,8 @@ export default function RegisterStep4Page() {
                   type="button"
                   className="absolute inset-y-0 right-0 flex items-center pr-3"
                   onClick={() => setShowPassword(!showPassword)}
-                  disabled={loading}>
+                  disabled={loading}
+                >
                   {showPassword ? (
                     <EyeOff className="h-5 w-5 text-gray-400" />
                   ) : (
@@ -257,7 +295,8 @@ export default function RegisterStep4Page() {
                       passwordValidation.minLength
                         ? "text-green-600"
                         : "text-gray-600"
-                    }>
+                    }
+                  >
                     Be at least 10 characters long
                   </span>
                 </div>
@@ -272,7 +311,8 @@ export default function RegisterStep4Page() {
                       passwordValidation.hasUppercase
                         ? "text-green-600"
                         : "text-gray-600"
-                    }>
+                    }
+                  >
                     Include at least one uppercase letter
                   </span>
                 </div>
@@ -287,7 +327,8 @@ export default function RegisterStep4Page() {
                       passwordValidation.hasDigit
                         ? "text-green-600"
                         : "text-gray-600"
-                    }>
+                    }
+                  >
                     Include at least one digit
                   </span>
                 </div>
@@ -297,7 +338,8 @@ export default function RegisterStep4Page() {
             <div className="mt-6">
               <label
                 htmlFor="confirmPassword"
-                className="mb-1 block text-sm font-medium text-gray-700">
+                className="mb-1 block text-sm font-medium text-gray-700"
+              >
                 Confirm Password <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -324,7 +366,8 @@ export default function RegisterStep4Page() {
               />
               <label
                 htmlFor="agreeTerms"
-                className="ml-2 block text-sm text-gray-700">
+                className="ml-2 block text-sm text-gray-700"
+              >
                 I agree to the{" "}
                 <a href="#" className="text-orange-600 hover:text-orange-500">
                   Terms of Service
@@ -342,31 +385,36 @@ export default function RegisterStep4Page() {
                 onClick={() => router.push("/register/step3")}
                 className="px-6 py-2 text-sm font-medium text-orange-500 hover:text-orange-600"
                 variant="ghost"
-                disabled={loading}>
+                disabled={loading}
+              >
                 Back
               </Button>
               <Button
                 type="submit"
                 disabled={loading}
-                className="flex items-center gap-2 rounded-md bg-orange-500 px-6 py-2 text-white hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2">
+                className="flex items-center gap-2 rounded-md bg-orange-500 px-6 py-2 text-white hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+              >
                 {loading ? (
                   <>
                     <svg
                       className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
-                      viewBox="0 0 24 24">
+                      viewBox="0 0 24 24"
+                    >
                       <circle
                         className="opacity-25"
                         cx="12"
                         cy="12"
                         r="10"
                         stroke="currentColor"
-                        strokeWidth="4"></circle>
+                        strokeWidth="4"
+                      ></circle>
                       <path
                         className="opacity-75"
                         fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
                     </svg>
                     Creating account...
                   </>

@@ -11,10 +11,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { apiClient } from "@/lib/api-client";
+import { signIn, getInfo, authTestCookies } from "@/services/auth/authApi";
 import { useToast } from "@/hooks/use-toast";
 
-import logo from "@/public/globagift-logo.png"
-
+import logo from "@/public/globagift-logo.png";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -34,17 +34,45 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await apiClient.login(email, password);
-      if (response.error) {
-        throw new Error(response.error);
+      const response = await signIn({
+        email: email,
+        password: password,
+      });
+
+      if (response.status !== "OK") {
+        throw new Error(response.message || "Login failed");
       }
+
+      // // Store the token if provided
+      // if (response.data) {
+      //   // Store in localStorage for client-side access
+      //   localStorage.setItem("accessToken", response.data);
+      //   // Store in cookie for middleware authentication
+      //   document.cookie = `access_token=${response.data}; path=/; max-age=86400; SameSite=Lax`;
+      // }
+
+      // Call getInfo endpoint to get user information
+      // try {
+      //   console.log(
+      //     "Calling getInfo with token:",
+      //     localStorage.getItem("accessToken")
+      //   );
+      //   const userInfo = await getInfo();
+      //   console.log("userInfo", userInfo);
+
+      //   // Store user info in localStorage for use throughout the app
+      //   localStorage.setItem("userInfo", JSON.stringify(userInfo));
+      // } catch (error) {
+      //   console.error("Error fetching user info:", error);
+      //   // Continue with login even if getInfo fails
+      // }
 
       toast({
         title: "Login successful",
         description: "Redirecting to dashboard...",
       });
 
-      router.push("/dashboard");
+      router.push("/dashboard/settings");
     } catch (error: any) {
       console.error("Login error:", error);
 
@@ -95,18 +123,36 @@ export default function LoginPage() {
     }
   };
 
+  const handleGetInfo = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    const response = await getInfo();
+    console.log("response", response);
+  };
+
+  const redirectToRefreshSession = async (
+    e: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    e.preventDefault();
+    router.push("/session/refresh");
+  };
+
   return (
     <div className="flex min-h-screen flex-col bg-[#f0f5fa]">
       {/* Header */}
       <header className="flex items-center justify-between px-8 py-6">
         <div className="flex items-center">
-            <img alt="Globagift-logo" src={logo.src} className="h-[100px] w-auto" />
+          <img
+            alt="Globagift-logo"
+            src={logo.src}
+            className="h-[100px] w-auto"
+          />
         </div>
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-600">Don't have an account?</span>
           <Link
             href="/register"
-            className="rounded-md border border-orange-500 px-4 py-2 text-sm font-medium text-orange-500 hover:bg-orange-50">
+            className="rounded-md border border-orange-500 px-4 py-2 text-sm font-medium text-orange-500 hover:bg-orange-50"
+          >
             Sign up
           </Link>
         </div>
@@ -132,7 +178,8 @@ export default function LoginPage() {
                 <div>
                   <label
                     htmlFor="email"
-                    className="mb-1 block text-sm font-medium text-gray-700">
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
                     Email address
                   </label>
                   <div className="relative">
@@ -147,7 +194,8 @@ export default function LoginPage() {
                           stroke="currentColor"
                           strokeWidth="2"
                           strokeLinecap="round"
-                          strokeLinejoin="round">
+                          strokeLinejoin="round"
+                        >
                           <rect width="20" height="16" x="2" y="4" rx="2" />
                           <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
                         </svg>
@@ -172,12 +220,14 @@ export default function LoginPage() {
                   <div className="flex items-center justify-between">
                     <label
                       htmlFor="password"
-                      className="block text-sm font-medium text-gray-700">
+                      className="block text-sm font-medium text-gray-700"
+                    >
                       Password
                     </label>
                     <Link
                       href="/forgot-password"
-                      className="text-sm font-medium text-orange-600 hover:text-orange-500">
+                      className="text-sm font-medium text-orange-600 hover:text-orange-500"
+                    >
                       Forgot your password?
                     </Link>
                   </div>
@@ -197,7 +247,8 @@ export default function LoginPage() {
                       type="button"
                       className="absolute inset-y-0 right-0 flex items-center pr-3"
                       onClick={() => setShowPassword(!showPassword)}
-                      disabled={loading}>
+                      disabled={loading}
+                    >
                       {showPassword ? (
                         <EyeOff className="h-5 w-5 text-gray-400" />
                       ) : (
@@ -211,25 +262,29 @@ export default function LoginPage() {
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="flex w-full items-center justify-center gap-2 rounded-md bg-orange-500 px-6 py-3 text-white hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2">
+                    className="flex w-full items-center justify-center gap-2 rounded-md bg-orange-500 px-6 py-3 text-white hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+                  >
                     {loading ? (
                       <>
                         <svg
                           className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
                           xmlns="http://www.w3.org/2000/svg"
                           fill="none"
-                          viewBox="0 0 24 24">
+                          viewBox="0 0 24 24"
+                        >
                           <circle
                             className="opacity-25"
                             cx="12"
                             cy="12"
                             r="10"
                             stroke="currentColor"
-                            strokeWidth="4"></circle>
+                            strokeWidth="4"
+                          ></circle>
                           <path
                             className="opacity-75"
                             fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
                         </svg>
                         Signing in...
                       </>
@@ -239,6 +294,12 @@ export default function LoginPage() {
                         <ArrowRight className="h-4 w-4" />
                       </>
                     )}
+                  </Button>
+                  <Button onClick={handleGetInfo} className="mt-10">
+                    Call getInfo
+                  </Button>
+                  <Button onClick={redirectToRefreshSession} className="mt-10">
+                    Redirect to refresh session
                   </Button>
                 </div>
               </form>
@@ -263,7 +324,8 @@ export default function LoginPage() {
                 <div>
                   <label
                     htmlFor="verification-code"
-                    className="mb-1 block text-sm font-medium text-gray-700">
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
                     Verification Code
                   </label>
                   <Input
@@ -283,25 +345,29 @@ export default function LoginPage() {
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="flex w-full items-center justify-center gap-2 rounded-md bg-orange-500 px-6 py-3 text-white hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2">
+                    className="flex w-full items-center justify-center gap-2 rounded-md bg-orange-500 px-6 py-3 text-white hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+                  >
                     {loading ? (
                       <>
                         <svg
                           className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
                           xmlns="http://www.w3.org/2000/svg"
                           fill="none"
-                          viewBox="0 0 24 24">
+                          viewBox="0 0 24 24"
+                        >
                           <circle
                             className="opacity-25"
                             cx="12"
                             cy="12"
                             r="10"
                             stroke="currentColor"
-                            strokeWidth="4"></circle>
+                            strokeWidth="4"
+                          ></circle>
                           <path
                             className="opacity-75"
                             fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
                         </svg>
                         Verifying...
                       </>
@@ -319,7 +385,8 @@ export default function LoginPage() {
                     type="button"
                     onClick={() => setStep("login")}
                     className="text-sm font-medium text-orange-600 hover:text-orange-500"
-                    disabled={loading}>
+                    disabled={loading}
+                  >
                     Back to login
                   </button>
                 </div>

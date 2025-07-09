@@ -1,70 +1,38 @@
-import axios from "axios"
-import { getCookie, setCookie, deleteCookie } from "./cookies"
+import axios, { AxiosResponse } from "axios";
 
-// Create axios instance
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
-  timeout: 10000,
+export const BASE_URL = `https://bbk.rtrd.pp.ua/`;
+export function handleResponse(response: AxiosResponse<any, any>) {
+  if (response.status >= 400 && response.status < 600) {
+    throw {
+      error: true,
+      message: response.data?.error || "Unknown error occurred",
+    };
+  }
+  return response;
+}
+
+// Main axios instance
+const axiosInstance = axios.create({
+  baseURL: BASE_URL,
+  headers: {
+    "Content-Type": "application/json;charset=UTF-8",
+    Accept: "application/json",
+  },
   withCredentials: true,
-})
+});
 
-// Request interceptor to add auth token
-api.interceptors.request.use(
-  (config) => {
-    const token = getCookie("access_token")
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
-    return config
-  },
-  (error) => {
-    return Promise.reject(error)
-  },
-)
+// Add token to each request as a query param
+axiosInstance.interceptors.request.use((config) => {
+  if (config.headers) {
+    // config.headers.Authorization = Bearer ${STATIC_TOKEN};
+  }
+  return config;
+});
 
-// Response interceptor to handle token refresh and errors
-api.interceptors.response.use(
-  (response) => {
-    return response
-  },
-  async (error) => {
-    const originalRequest = error.config
+// Handle response
+axiosInstance.interceptors.response.use(
+  (response) => handleResponse(response),
+  (error) => Promise.reject(error)
+);
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true
-
-      try {
-        const refreshToken = getCookie("refresh_token")
-        if (refreshToken) {
-          const response = await axios.post(
-            `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/users/refresh`,
-            {},
-            {
-              headers: {
-                "refresh-token": refreshToken,
-              },
-            },
-          )
-
-          const { access_token, refresh_token } = response.data
-          setCookie("access_token", access_token)
-          setCookie("refresh_token", refresh_token)
-
-          // Retry the original request with new token
-          originalRequest.headers.Authorization = `Bearer ${access_token}`
-          return api(originalRequest)
-        }
-      } catch (refreshError) {
-        // Refresh failed, redirect to login
-        deleteCookie("access_token")
-        deleteCookie("refresh_token")
-        window.location.href = "/login"
-        return Promise.reject(refreshError)
-      }
-    }
-
-    return Promise.reject(error)
-  },
-)
-
-export default api
+export default axiosInstance;

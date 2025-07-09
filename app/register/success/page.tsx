@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { apiClient } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
-import registerLogo from "@/public/globagift-logo.png"
+import registerLogo from "@/public/globagift-logo.png";
 
 export default function RegisterSuccessPage() {
   const [resending, setResending] = useState(false);
@@ -68,7 +68,11 @@ export default function RegisterSuccessPage() {
       {/* Header */}
       <header className="flex items-center justify-between px-8 py-6">
         <div className="flex items-center">
-          <img alt="Globagift-logo" src={registerLogo.src} className="h-[100px] w-auto" />
+          <img
+            alt="Globagift-logo"
+            src={registerLogo.src}
+            className="h-[100px] w-auto"
+          />
         </div>
       </header>
 
@@ -103,7 +107,8 @@ export default function RegisterSuccessPage() {
             onClick={handleResendVerification}
             disabled={resending}
             variant="outline"
-            className="flex items-center justify-center gap-2">
+            className="flex items-center justify-center gap-2"
+          >
             {resending ? (
               <>
                 <RefreshCw className="h-4 w-4 animate-spin" />

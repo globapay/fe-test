@@ -1,38 +1,34 @@
-"use client"
+"use client";
 
-import type { ReactNode } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { LogOut, Menu } from "lucide-react"
+import type { ReactNode } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { LogOut, Menu } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { useAuth } from "@/contexts/auth-context"
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/auth-context";
 
-export function DashboardLayoutClient({
-  children,
-}: {
-  children: ReactNode
-}) {
-  const { user, logout, loading } = useAuth()
-  const router = useRouter()
+export function DashboardLayoutClient({ children }: { children: ReactNode }) {
+  const { user, logout, loading } = useAuth();
+  const router = useRouter();
 
   const handleLogout = async () => {
-    await logout()
-    router.push("/login")
-  }
+    await logout();
+    router.push("/login");
+  };
 
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
       </div>
-    )
+    );
   }
 
-  if (!user) {
-    router.push("/login")
-    return null
-  }
+  // if (!user) {
+  //   router.push("/login");
+  //   return null;
+  // }
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -48,7 +44,10 @@ export function DashboardLayoutClient({
           <div className="space-y-1">
             {/* UPDATED SIDEBAR - ONLY ONE LINK */}
             <Link href="/dashboard/settings">
-              <Button variant="ghost" className="w-full justify-start bg-orange-100">
+              <Button
+                variant="ghost"
+                className="w-full justify-start bg-orange-100"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="20"
@@ -100,18 +99,20 @@ export function DashboardLayoutClient({
               <Menu className="h-5 w-5" />
               <span className="sr-only">Toggle menu</span>
             </Button>
-            <span className="text-xl font-bold text-orange-500 md:hidden">GiftFlow</span>
+            <span className="text-xl font-bold text-orange-500 md:hidden">
+              GiftFlow
+            </span>
           </div>
 
           <div className="ml-auto flex items-center gap-4">
             <div className="text-sm">
               <div className="font-medium">
-                {user.first_name} {user.last_name}
+                {user?.first_name} {user?.last_name}
               </div>
-              <div className="text-gray-500">{user.email}</div>
+              <div className="text-gray-500">{user?.email}</div>
             </div>
             <div className="h-8 w-8 rounded-full bg-orange-500 text-white flex items-center justify-center">
-              {user.first_name[0].toUpperCase()}
+              {user?.first_name[0].toUpperCase()}
             </div>
           </div>
         </header>
@@ -120,5 +121,5 @@ export function DashboardLayoutClient({
         <main className="flex-1 overflow-auto p-6">{children}</main>
       </div>
     </div>
-  )
+  );
 }
