@@ -34,3 +34,8 @@ export const authTestCookies = async (): Promise<any> => {
   const response = await axiosInstance.get(`/auth/test-cookies`);
   return response.data;
 };
+
+export const getSSOUrl = async (): Promise<string> => {
+  const response = await axiosInstance.get(`/auth/sso-url`);
+  return response.data.data;
+};
