@@ -1,6 +1,5 @@
 import GiftIframe from "@/app/dashboard/gifts/gift-iframe";
 import {ArrowLeft} from "lucide-react";
-import {Button} from "@/components/ui/button";
 import Link from "next/link";
 
 export default function GiftsPage() {
