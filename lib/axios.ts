@@ -1,13 +1,16 @@
 import axios, { AxiosResponse } from "axios";
 
 export const BASE_URL = `https://bbk.rtrd.pp.ua/`;
+
 export function handleResponse(response: AxiosResponse<any, any>) {
   if (response.status >= 400 && response.status < 600) {
+    console.log("response", response);
     throw {
       error: true,
       message: response.data?.error || "Unknown error occurred",
     };
   }
+  console.log("response 1", response);
   return response;
 }
 
@@ -32,7 +35,12 @@ axiosInstance.interceptors.request.use((config) => {
 // Handle response
 axiosInstance.interceptors.response.use(
   (response) => handleResponse(response),
-  (error) => Promise.reject(error)
+  async (error) => {
+    if (error.response.status === 401) {
+      await axios.post(`${BASE_URL}refresh`);
+    }
+    Promise.reject(error)
+  }
 );
 
 export default axiosInstance;

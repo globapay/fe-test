@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import {isAuthenticated} from "@/services/auth/authApi";
 
 export async function middleware(req: NextRequest) {
-  // const { pathname } = req.nextUrl;
+  const { pathname } = req.nextUrl;
+  const token = req.cookies.get("sAccessToken");
+
+  if (pathname.startsWith("/dashboard") && !token?.value) {
+    return NextResponse.redirect(new URL( "/login", req.url));
+  }
   // // Public routes that don't require authentication
   // const publicRoutes = [
   //   "/login",
@@ -12,6 +18,7 @@ export async function middleware(req: NextRequest) {
   //   "/test-navigation",
   //   "/iframe",
   // ];
+  // const isAuth: boolean = await isAuthenticated();
   // // Check if the current path is a public route
   // const isPublicRoute = publicRoutes.some(
   //   (route) => pathname.startsWith(route) || pathname === "/"

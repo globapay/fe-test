@@ -40,7 +40,7 @@ export function DashboardLayoutClient({children}: { children: ReactNode }) {
             {allowedPathname.includes(pathname) && (
                 <aside className="hidden w-64 flex-col bg-white shadow-sm md:flex">
                     <div className="flex h-16 items-center border-b px-6">
-                        <Link href="/dashboard/settings" className="flex items-center">
+                        <Link href="/app/(protected)/dashboard/settings" className="flex items-center">
                             <span className="text-xl font-bold text-orange-500">GiftFlow</span>
                         </Link>
                     </div>

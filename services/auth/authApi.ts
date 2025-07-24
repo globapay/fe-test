@@ -1,4 +1,6 @@
 import axiosInstance from "@/lib/axios";
+import {getCookie} from "@/lib/cookies";
+import {Cookie} from "lucide-react";
 
 export const authMerchantRegister = async (
   data: any
@@ -25,8 +27,27 @@ export const signIn = async (
   return response.data;
 };
 
+export const logOut = async (): Promise<any> => {
+  const response = await axiosInstance.post(`/auth/logout`);
+  return response.data;
+};
+
 export const getInfo = async (): Promise<any> => {
   const response = await axiosInstance.post(`/auth/sessioninfo`);
+  return response.data;
+};
+
+export const isAuthenticated = async (): Promise<boolean> => {
+  try {
+    const cookies = await checkCookies();
+    return !!cookies?.cookies?.sAccessToken;
+  } catch (error) {
+    return false;
+  }
+}
+
+export const checkCookies = async (): Promise<any> => {
+  const response = await axiosInstance.get(`/auth/check-cookies`);
   return response.data;
 };
 

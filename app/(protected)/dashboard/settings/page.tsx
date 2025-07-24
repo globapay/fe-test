@@ -7,10 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { User, Building, Shield, Palette, AlertCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import ProfileTab from "@/app/dashboard/settings/(tabs)/profile-tab";
-import CompanyTab from "@/app/dashboard/settings/(tabs)/company-tab";
-import BrandingTab from "@/app/dashboard/settings/(tabs)/branding-tab";
-import SecurityTab from "@/app/dashboard/settings/(tabs)/security-tab";
+import ProfileTab from "@/app/(protected)/dashboard/settings/(tabs)/profile-tab";
+import CompanyTab from "@/app/(protected)/dashboard/settings/(tabs)/company-tab";
+import BrandingTab from "@/app/(protected)/dashboard/settings/(tabs)/branding-tab";
+import SecurityTab from "@/app/(protected)/dashboard/settings/(tabs)/security-tab";
+import {useAuth} from "@/contexts/auth-context";
 
 export default function SettingsPage() {
 

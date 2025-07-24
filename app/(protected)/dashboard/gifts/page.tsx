@@ -1,4 +1,4 @@
-import GiftIframe from "@/app/dashboard/gifts/gift-iframe";
+import GiftIframe from "@/app/(protected)/dashboard/gifts/gift-iframe";
 import {ArrowLeft} from "lucide-react";
 import Link from "next/link";
 

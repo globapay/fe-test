@@ -15,6 +15,7 @@ import { signIn, getInfo } from "@/services/auth/authApi";
 import { useToast } from "@/hooks/use-toast";
 
 import logo from "@/public/globagift-logo.png";
+import {useAuth} from "@/contexts/auth-context";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -24,6 +25,7 @@ export default function LoginPage() {
   const [step, setStep] = useState<"login" | "verify">("login");
   const [verificationCode, setVerificationCode] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const {login} = useAuth();
 
   const router = useRouter();
   const { toast } = useToast();
@@ -34,14 +36,11 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await signIn({
-        email: email,
-        password: password,
-      });
+      await login(email, password);
 
-      if (response.status !== "OK") {
-        throw new Error(response.message || "Login failed");
-      }
+      // if (response.status !== "OK") {
+      //   throw new Error(response.message || "Login failed");
+      // }
 
       // // Store the token if provided
       // if (response.data) {
@@ -121,19 +120,6 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleGetInfo = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    const response = await getInfo();
-    console.log("response", response);
-  };
-
-  const redirectToRefreshSession = async (
-    e: React.MouseEvent<HTMLButtonElement>
-  ) => {
-    e.preventDefault();
-    router.push("/session/refresh");
   };
 
   return (
@@ -294,12 +280,6 @@ export default function LoginPage() {
                         <ArrowRight className="h-4 w-4" />
                       </>
                     )}
-                  </Button>
-                  <Button onClick={handleGetInfo} className="mt-10">
-                    Call getInfo
-                  </Button>
-                  <Button onClick={redirectToRefreshSession} className="mt-10">
-                    Redirect to refresh session
                   </Button>
                 </div>
               </form>
