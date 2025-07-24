@@ -1,6 +1,6 @@
 import axios, { AxiosResponse } from "axios";
 
-export const BASE_URL = `https://bbk.rtrd.pp.ua/`;
+export const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 export function handleResponse(response: AxiosResponse<any, any>) {
   if (response.status >= 400 && response.status < 600) {
