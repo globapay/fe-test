@@ -36,10 +36,10 @@ export default function GiftIframe() {
             id="giftcard-system-iframe"
             allow="camera; microphone"
             width="100%"
-            height="80vh"
+            height="100%"
             title="Gift card"
             src={ssoUrl}
-            style={{ height: "80vh"}}
+            style={{ height: "100%"}}
         >
         </iframe>
     ) : null;

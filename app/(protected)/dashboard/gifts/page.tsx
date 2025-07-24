@@ -5,7 +5,7 @@ import Link from "next/link";
 export default function GiftsPage() {
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 h-full">
             <div className="flex items-center gap-4">
                 <Link href="/dashboard/settings" className="cursor-pointer">
                     <ArrowLeft/>

@@ -9,6 +9,7 @@ import {Button} from "@/components/ui/button";
 import {useAuth} from "@/contexts/auth-context";
 import {LayoutDashboard, Gift} from "lucide-react";
 import NavbarLink from "@/components/navbar-link";
+import footerLogo from "@/public/globagift-footer.png";
 
 const allowedPathname: string[] = ["/dashboard/settings"];
 
@@ -39,12 +40,13 @@ export function DashboardLayoutClient({children}: { children: ReactNode }) {
             {/* Sidebar - Desktop */}
             {allowedPathname.includes(pathname) && (
                 <aside className="hidden w-64 flex-col bg-white shadow-sm md:flex">
-                    <div className="flex h-16 items-center border-b px-6">
-                        <Link href="/app/(protected)/dashboard/settings" className="flex items-center">
-                            <span className="text-xl font-bold text-orange-500">GiftFlow</span>
-                        </Link>
-                    </div>
-
+                    {pathname.includes("/dashboard/settings") && (
+                        <div className="flex h-16 items-center border-b px-6">
+                            <Link href="/app/(protected)/dashboard/settings" className="flex items-center">
+                                <span className="text-xl font-bold text-orange-500">GiftFlow</span>
+                            </Link>
+                        </div>
+                    )}
                     <nav className="flex flex-1 flex-col p-4">
                         <NavbarLink
                             link="/dashboard/settings"
@@ -75,6 +77,13 @@ export function DashboardLayoutClient({children}: { children: ReactNode }) {
             <div className="flex flex-1 flex-col">
                 {/* Header */}
                 <header className="flex h-16 items-center justify-between border-b bg-white px-6">
+                    {pathname.includes("/dashboard/gifts") && (
+                        <div className="flex h-16 items-center border-b px-6">
+                            <Link href="/app/(protected)/dashboard/settings" className="flex items-center">
+                                <span className="text-xl font-bold text-orange-500">GiftFlow</span>
+                            </Link>
+                        </div>
+                    )}
                     <div className="flex items-center md:hidden">
                         <Button variant="ghost" size="icon" className="mr-2">
                             <Menu className="h-5 w-5"/>
@@ -100,6 +109,47 @@ export function DashboardLayoutClient({children}: { children: ReactNode }) {
 
                 {/* Page Content */}
                 <main className="flex-1 overflow-auto p-6">{children}</main>
+
+                {/* Footer */}
+                {pathname.includes("/dashboard/gifts") && (
+                    <footer className="bg-white p-8 px-20">
+                        <div className="w-full ">
+                            <div className="flex justify-between items-start">
+                                <div className="flex">
+                                    <div>
+                                        <Link href="/app.globagift.io">
+                                            <img alt="Globagift-footer-logo" src={footerLogo.src} className="h-[100px] w-auto" />
+                                        </Link>
+                                    </div>
+                                    <div >
+                                        <p className="text-sm text-gray-500">+353 1 557 2020</p>
+                                        <p className="text-sm text-gray-500">hello@globapay.io</p>
+                                        <p className="mt-4 text-xs text-gray-400">Copyright © 2025 Globapay Holdings Ltd.</p>
+                                        <p className="text-xs text-gray-400">20 Harcourt Street, Dublin D02 H364, Ireland</p>
+                                    </div>
+                                </div>
+                                <div className="flex space-x-16">
+                                    <div className="space-y-2">
+                                        <h3 className="font-semibold text-gray-900">Helpful links</h3>
+                                        <ul className="space-y-2 text-sm text-gray-600">
+                                            <li><Link href="#" className="hover:underline">Support</Link></li>
+                                            <li><Link href="#" className="hover:underline">Community</Link></li>
+                                            <li><Link href="#" className="hover:underline">Terms & conditions</Link></li>
+                                        </ul>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <h3 className="font-semibold text-gray-900">Company</h3>
+                                        <ul className="space-y-2 text-sm text-gray-600">
+                                            <li><Link href="#" className="hover:underline">About us</Link></li>
+                                            <li><Link href="#" className="hover:underline">Careers</Link></li>
+                                            <li><Link href="#" className="hover:underline">Partnerships</Link></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </footer>
+                )}
             </div>
         </div>
     );
