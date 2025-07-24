@@ -1,13 +1,11 @@
 import axiosInstance from "@/lib/axios";
-import {getCookie} from "@/lib/cookies";
-import {Cookie} from "lucide-react";
 
 export const authMerchantRegister = async (
   data: any
 ): Promise<{
-  status_code: number;
-  detail: string;
-  headers: any;
+  status?: string;
+  detail?: string;
+  message?: string;
 }> => {
   const response = await axiosInstance.post(
     "/auth/merchant-registration",

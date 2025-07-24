@@ -15,10 +15,12 @@ import ProgressBar from "@/components/progress-bar";
 import { authMerchantRegister } from "@/services/auth/authApi";
 import { useToast } from "@/hooks/use-toast";
 import registerLogo from "@/public/globagift-logo.png";
+import {useAuth} from "@/contexts/auth-context";
 
 export default function RegisterStep4Page() {
   const router = useRouter();
   const { toast } = useToast();
+  const {login} = useAuth();
 
   const [formData, setFormData] = useState({
     password: "",
@@ -172,20 +174,22 @@ export default function RegisterStep4Page() {
 
       const response = await authMerchantRegister(registerPayload);
 
-      if (response.status_code !== 200 && response.status_code !== 201) {
+      if (!response?.status) {
         throw new Error(response.detail || "Registration failed");
       }
 
-      toast({
-        title: "Registration successful",
-        description: "Please check your email to verify your account",
-      });
+      if (response?.status === "created") {
+        toast({
+          title: "Registration successful",
+          description: "Please check your email to verify your account",
+        });
 
-      // Clear registration data from localStorage
-      localStorage.removeItem("registrationData");
-
-      // Redirect to success page
-      router.push("/register/success");
+        // Clear registration data from localStorage
+        localStorage.removeItem("registrationData");
+        await login(registrationData.email, formData.password);
+        // Redirect to success page
+        router.push("/dashboard/settings");
+      }
     } catch (error: any) {
       console.error("Registration error:", error);
       setError(
