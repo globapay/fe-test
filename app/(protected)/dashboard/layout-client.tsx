@@ -149,49 +149,47 @@ export function DashboardLayoutClient({children}: { children: ReactNode }) {
                 <main className="flex-1 overflow-auto p-6">{children}</main>
 
                 {/* Footer */}
-                {pathname.includes("/dashboard/gifts") && (
-                    <footer className="bg-white p-8 px-20">
-                        <div className="w-full ">
-                            <div className="flex justify-between items-start">
-                                <div className="flex">
-                                    <div>
-                                        <Link href="/app.globagift.io">
-                                            <img alt="Globagift-footer-logo" src={footerLogo.src}
-                                                 className="h-[100px] w-auto"/>
-                                        </Link>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">+353 1 557 2020</p>
-                                        <p className="text-sm text-gray-500">hello@globapay.io</p>
-                                        <p className="mt-4 text-xs text-gray-400">Copyright © 2025 Globapay Holdings
-                                            Ltd.</p>
-                                        <p className="text-xs text-gray-400">20 Harcourt Street, Dublin D02 H364,
-                                            Ireland</p>
-                                    </div>
+                <footer className="bg-white p-6">
+                    <div className="w-full ">
+                        <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+                            <div className="flex gap-4 w-full">
+                                <div className="w-fit">
+                                    <Link href="/app.globagift.io">
+                                        <img alt="Globagift-footer-logo" src={footerLogo.src}
+                                             className="aspect-square w-[100px] object-cover"/>
+                                    </Link>
                                 </div>
-                                <div className="flex space-x-16">
-                                    <div className="space-y-2">
-                                        <h3 className="font-semibold text-gray-900">Helpful links</h3>
-                                        <ul className="space-y-2 text-sm text-gray-600">
-                                            <li><Link href="#" className="hover:underline">Support</Link></li>
-                                            <li><Link href="#" className="hover:underline">Community</Link></li>
-                                            <li><Link href="#" className="hover:underline">Terms & conditions</Link>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <h3 className="font-semibold text-gray-900">Company</h3>
-                                        <ul className="space-y-2 text-sm text-gray-600">
-                                            <li><Link href="#" className="hover:underline">About us</Link></li>
-                                            <li><Link href="#" className="hover:underline">Careers</Link></li>
-                                            <li><Link href="#" className="hover:underline">Partnerships</Link></li>
-                                        </ul>
-                                    </div>
+                                <div className="w-full">
+                                    <p className="text-sm text-gray-500">+353 1 557 2020</p>
+                                    <p className="text-sm text-gray-500">hello@globapay.io</p>
+                                    <p className="mt-4 text-xs text-gray-400">Copyright © 2025 Globapay Holdings
+                                        Ltd.</p>
+                                    <p className="text-xs text-gray-400">20 Harcourt Street, Dublin D02 H364,
+                                        Ireland</p>
+                                </div>
+                            </div>
+                            <div className="flex space-x-16 w-full md:justify-end">
+                                <div className="space-y-2 w-full md:w-fit">
+                                    <h3 className="font-semibold text-gray-900">Helpful links</h3>
+                                    <ul className="space-y-2 text-sm text-gray-600">
+                                        <li><Link href="#" className="hover:underline">Support</Link></li>
+                                        <li><Link href="#" className="hover:underline">Community</Link></li>
+                                        <li><Link href="#" className="hover:underline">Terms & conditions</Link>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div className="space-y-2 w-full md:w-fit">
+                                    <h3 className="font-semibold text-gray-900">Company</h3>
+                                    <ul className="space-y-2 text-sm text-gray-600">
+                                        <li><Link href="#" className="hover:underline">About us</Link></li>
+                                        <li><Link href="#" className="hover:underline">Careers</Link></li>
+                                        <li><Link href="#" className="hover:underline">Partnerships</Link></li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
-                    </footer>
-                )}
+                    </div>
+                </footer>
             </div>
         </div>
     );
