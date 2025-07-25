@@ -10,7 +10,7 @@ export function handleResponse(response: AxiosResponse<any, any>) {
       message: response.data?.error || "Unknown error occurred",
     };
   }
-  console.log("response 1", response);
+
   return response;
 }
 

@@ -10,9 +10,10 @@ interface Props {
     link: string;
     title: string;
     icon: JSX.Element;
+    onClick?: () => void;
 }
 
-export default function NavbarLink({link, title, icon} : Props) {
+export default function NavbarLink({link, title, icon, onClick} : Props) {
     const pathname: string = usePathname();
 
     return (
@@ -21,6 +22,7 @@ export default function NavbarLink({link, title, icon} : Props) {
                 <Button
                     variant="ghost"
                     className={cn("w-full justify-start", pathname === link && "bg-orange-200 hover:bg-orange-200 cursor-default")}
+                    onClick={onClick}
                 >
                     {icon}
                     {title}
