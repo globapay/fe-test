@@ -11,7 +11,7 @@ import {useRouter} from "next/navigation";
 interface AuthContextType {
   user: IMerchant | null
   loading: boolean
-  login: (email: string, password: string) => Promise<void>
+  login: (email: string, password: string) => Promise<boolean>
   logout: () => Promise<void>
   isAuthenticated: boolean
 }
@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initAuth()
   }, [])
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<boolean> => {
     setLoading(true);
     try {
       const response = await signIn({
@@ -53,10 +53,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (response.status === "OK") {
         const merchant: IMerchant = await getMerchant();
-        setUser(merchant)
+        setUser(merchant);
+        return true;
       }
+
+      return false;
     } catch (error) {
       console.error("Login error:", error);
+      return false;
     } finally {
       setLoading(false);
     }

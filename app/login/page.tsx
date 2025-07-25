@@ -36,46 +36,23 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await login(email, password);
+      const response: boolean = await login(email, password);
 
-      // if (response.status !== "OK") {
-      //   throw new Error(response.message || "Login failed");
-      // }
+      if (response) {
+        toast({
+          title: "Login successful",
+          description: "Redirecting to dashboard...",
+        });
 
-      // // Store the token if provided
-      // if (response.data) {
-      //   // Store in localStorage for client-side access
-      //   localStorage.setItem("accessToken", response.data);
-      //   // Store in cookie for middleware authentication
-      //   document.cookie = `access_token=${response.data}; path=/; max-age=86400; SameSite=Lax`;
-      // }
-
-      // Call getInfo endpoint to get user information
-      // try {
-      //   console.log(
-      //     "Calling getInfo with token:",
-      //     localStorage.getItem("accessToken")
-      //   );
-      //   const userInfo = await getInfo();
-      //   console.log("userInfo", userInfo);
-
-      //   // Store user info in localStorage for use throughout the app
-      //   localStorage.setItem("userInfo", JSON.stringify(userInfo));
-      // } catch (error) {
-      //   console.error("Error fetching user info:", error);
-      //   // Continue with login even if getInfo fails
-      // }
-
-      toast({
-        title: "Login successful",
-        description: "Redirecting to dashboard...",
-      });
-
-      router.push("/dashboard/settings");
+        router.push("/dashboard/settings");
+      } else {
+        setError(
+            "Invalid email or password. Please try again."
+        );
+      }
     } catch (error: any) {
       console.error("Login error:", error);
 
-      // Check if account needs verification
       if (error.message?.includes("not verified")) {
         setStep("verify");
         toast({
