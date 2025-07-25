@@ -1,6 +1,6 @@
 "use client";
 
-import {ReactNode, useState} from "react";
+import React, {ReactNode, useState} from "react";
 import Link from "next/link";
 import {usePathname, useRouter} from "next/navigation";
 import {LogOut, Menu} from "lucide-react";
@@ -10,7 +10,7 @@ import {useAuth} from "@/contexts/auth-context";
 import {LayoutDashboard, Gift} from "lucide-react";
 import NavbarLink from "@/components/navbar-link";
 import footerLogo from "@/public/globagift-footer.png";
-import {Sheet, SheetClose, SheetContent, SheetTitle, SheetTrigger} from "@/components/ui/sheet";
+import {Sheet, SheetContent, SheetTitle, SheetTrigger} from "@/components/ui/sheet";
 import {VisuallyHidden} from "@/components/ui/visually-hidden";
 
 const allowedPathname: string[] = ["/dashboard/settings"];
@@ -140,7 +140,7 @@ export function DashboardLayoutClient({children}: { children: ReactNode }) {
                             <div className="text-gray-500">{user?.email}</div>
                         </div>
                         <div className="h-8 w-8 rounded-full bg-orange-500 text-white flex items-center justify-center">
-                            {user?.first_name[0].toUpperCase()}
+                            {user?.first_name[0]?.toUpperCase()}
                         </div>
                     </div>
                 </header>

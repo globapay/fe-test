@@ -4,7 +4,7 @@ import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
 import { authService } from "@/lib/auth"
 import { isAuthenticated, logOut, signIn} from "@/services/auth/authApi";
-import {getMerchantProfile} from "@/services/merchant/merchantApi";
+import {getMerchantProfile, putMerchantProfile} from "@/services/merchant/merchantApi";
 import {IMerchant} from "@/types/merchant";
 import {useRouter} from "next/navigation";
 
@@ -13,6 +13,7 @@ interface AuthContextType {
   loading: boolean
   login: (email: string, password: string) => Promise<boolean>
   logout: () => Promise<void>
+  changeInfo: (first_name: string, last_name: string, phone: string) => Promise<boolean>
   isAuthenticated: boolean
 }
 
@@ -20,7 +21,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<IMerchant | null>(null)
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const router = useRouter();
 
   useEffect(() => {
@@ -66,6 +67,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const changeInfo = async (first_name: string, last_name: string, phone: string): Promise<boolean> => {
+    try {
+      const response: IMerchant = await putMerchantProfile(first_name, last_name, phone);
+
+      if (response) {
+        setUser(response);
+        return true;
+      }
+
+      return false;
+    } catch (e) {
+      console.log(e)
+      return false;
+    }
+  }
+
   const logout = async () => {
     setLoading(true);
     const response = await logOut();
@@ -83,6 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     login,
     logout,
     isAuthenticated: !!user,
+    changeInfo
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
