@@ -2,9 +2,9 @@
 
 import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
-import { type User, authService } from "@/lib/auth"
-import {checkCookies, getInfo, isAuthenticated, logOut, signIn} from "@/services/auth/authApi";
-import {getMerchant} from "@/services/merchant/merchantApi";
+import { authService } from "@/lib/auth"
+import { isAuthenticated, logOut, signIn} from "@/services/auth/authApi";
+import {getMerchantProfile} from "@/services/merchant/merchantApi";
 import {IMerchant} from "@/types/merchant";
 import {useRouter} from "next/navigation";
 
@@ -28,7 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const isAuth: boolean = await isAuthenticated();
       try {
         if (isAuth) {
-          const merchant: IMerchant = await getMerchant();
+          const merchant: IMerchant = await getMerchantProfile();
           setUser(merchant);
           console.log(1)
         }
@@ -52,7 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
 
       if (response.status === "OK") {
-        const merchant: IMerchant = await getMerchant();
+        const merchant: IMerchant = await getMerchantProfile();
         setUser(merchant);
         return true;
       }

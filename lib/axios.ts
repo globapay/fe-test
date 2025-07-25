@@ -36,7 +36,8 @@ axiosInstance.interceptors.request.use((config) => {
 axiosInstance.interceptors.response.use(
   (response) => handleResponse(response),
   async (error) => {
-    if (error.response.status === 401) {
+    console.log("error", error);
+    if (error?.response?.status === 401) {
       await axios.post(`${BASE_URL}refresh`);
     }
     Promise.reject(error)
