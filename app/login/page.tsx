@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { apiClient } from "@/lib/api-client";
-import { signIn, getInfo } from "@/services/auth/authApi";
 import { useToast } from "@/hooks/use-toast";
 
 import logo from "@/public/globagift-logo.png";

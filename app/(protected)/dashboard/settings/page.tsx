@@ -1,17 +1,9 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
 import { User, Building, Shield, Palette, AlertCircle } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import ProfileTab from "@/app/(protected)/dashboard/settings/(tabs)/profile-tab";
 import CompanyTab from "@/app/(protected)/dashboard/settings/(tabs)/company-tab";
 import BrandingTab from "@/app/(protected)/dashboard/settings/(tabs)/branding-tab";
 import SecurityTab from "@/app/(protected)/dashboard/settings/(tabs)/security-tab";
-import {useAuth} from "@/contexts/auth-context";
 
 export default function SettingsPage() {
 

@@ -7,6 +7,8 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from "@/contexts/auth-context"
 import {ToastProvider} from "@/components/ui/toast";
+import QueryProvider from "@/contexts/query-provider";
+import {ReactQueryDevtools} from "@tanstack/react-query-devtools";
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -27,7 +29,10 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <AuthProvider>
             <ToastProvider>
-              {children}
+              <QueryProvider>
+                {children}
+                <ReactQueryDevtools/>
+              </QueryProvider>
               <Toaster />
             </ToastProvider>
           </AuthProvider>
