@@ -6,9 +6,19 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const token = req.cookies.get("sAccessToken");
 
+  if (pathname.startsWith("/login")) {
+    req.cookies.delete("sAccessToken");
+    req.cookies.delete("session");
+  }
+
   if (pathname.startsWith("/dashboard") && !token?.value) {
     return NextResponse.redirect(new URL( "/login", req.url));
   }
+
+  if (pathname.startsWith("/login") && token?.value) {
+    return NextResponse.redirect(new URL( "/dashboard/settings", req.url));
+  }
+
   // // Public routes that don't require authentication
   // const publicRoutes = [
   //   "/login",
