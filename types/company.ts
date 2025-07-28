@@ -5,7 +5,7 @@ export interface ICompany {
     vat_number: string;
     currency: string;
     number_of_locations: number;
-    logo: string;
+    logo: string | null;
     street_address: string;
     state_address: string;
     zip_code: string;

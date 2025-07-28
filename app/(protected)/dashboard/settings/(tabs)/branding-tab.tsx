@@ -1,8 +1,71 @@
+"use client";
+
 import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
-import {Palette} from "lucide-react";
 import {Button} from "@/components/ui/button";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import {getCompany, putCompany} from "@/services/company/companyApi";
+import {useAuth} from "@/contexts/auth-context";
+import React, {useState} from "react";
+import ImageUploadCropped from "@/components/image-upload";
+import {ICompany} from "@/types/company";
+import {useToast} from "@/hooks/use-toast";
 
 export default function BrandingTab() {
+    const {user} = useAuth();
+    const {toast} = useToast();
+
+    const queryClient = useQueryClient();
+    const {data, isLoading} = useQuery({
+        queryKey: ['company'],
+        queryFn: () => getCompany(user?.company_id || ""),
+    });
+
+    const mutation = useMutation({
+        mutationFn: putCompany,
+        onSuccess: (data: ICompany) => {
+            if (data?.id) {
+                queryClient.setQueryData(['company'], data);
+                toast({
+                    title: "Company logo updated",
+                    description: "Company logo updated successfully",
+                });
+            } else {
+                toast({
+                    title: "Error",
+                    description: "Company logo not updated",
+                });
+            }
+        },
+        onError: (e: Error) => {
+            console.log(e);
+            toast({
+                title: "Error",
+                description: e?.message || "Something went wrong. Please try again later.",
+            });
+        }
+    })
+
+    const [croppedImage, setCroppedImage] = useState<string | null>(data?.logo || null);
+
+    const handleGetCroppedImage = (croppedImg: string) => {
+        setCroppedImage(croppedImg);
+    }
+
+    const onSubmit = async () => {
+        const updatedData: ICompany = {
+            ...data as ICompany,
+            logo: croppedImage
+        };
+        mutation.mutate(updatedData)
+    }
+
+    if (isLoading && !data) {
+        return (
+            <div className="flex min-h-screen items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+            </div>
+        );
+    }
 
     return (
         <Card>
@@ -14,28 +77,8 @@ export default function BrandingTab() {
             </CardHeader>
             <CardContent className="space-y-4">
                 <div className="flex flex-col gap-4">
-                    <div
-                        className="flex h-40 w-full items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50">
-                        <div className="text-center">
-                            <Palette className="mx-auto h-10 w-10 text-gray-400"/>
-                            <div className="mt-2">
-                                <label
-                                    htmlFor="file-upload"
-                                    className="cursor-pointer rounded-md bg-orange-500 px-3 py-2 text-sm font-medium text-white hover:bg-orange-600"
-                                >
-                                    <span>Upload logo</span>
-                                    <input
-                                        id="file-upload"
-                                        name="file-upload"
-                                        type="file"
-                                        className="sr-only"
-                                        accept=".jpg,.jpeg,.png,.pdf,.gg"
-                                    />
-                                </label>
-                            </div>
-                            <p className="mt-2 text-xs text-gray-500">JPG, PNG, PDF, GG up to 1,012 MB</p>
-                        </div>
-                    </div>
+                    <ImageUploadCropped image={croppedImage} getCroppedImage={(value: string) => handleGetCroppedImage(value)} />
+
                     <div className="text-sm text-gray-500">
                         <p>Your logo will appear on:</p>
                         <ul className="ml-5 mt-1 list-disc">
@@ -47,7 +90,9 @@ export default function BrandingTab() {
                 </div>
             </CardContent>
             <CardFooter>
-                <Button className="bg-orange-500 hover:bg-orange-600">Save Changes</Button>
+                <Button className="bg-orange-500 hover:bg-orange-600" disabled={data?.logo === croppedImage} onClick={onSubmit}>
+                    Save Changes
+                </Button>
             </CardFooter>
         </Card>
     )
