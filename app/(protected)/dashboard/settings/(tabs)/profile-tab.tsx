@@ -141,7 +141,7 @@ export default function ProfileTab() {
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <Button className="bg-orange-500 hover:bg-orange-600" disabled={isLoading}>
+                        <Button className="bg-orange-500 hover:bg-orange-600" disabled={isLoading || !form.formState.isDirty}>
                             Save Changes
                         </Button>
                     </CardFooter>
