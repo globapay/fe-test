@@ -6,6 +6,7 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const token = req.cookies.get("sAccessToken");
 
+  console.log(req)
   if (pathname.startsWith("/login")) {
     req.cookies.delete("sAccessToken");
     req.cookies.delete("session");

@@ -1,7 +1,6 @@
 "use client"
 
 import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
-import {Label} from "@/components/ui/label";
 import {Input} from "@/components/ui/input";
 import {Alert, AlertDescription} from "@/components/ui/alert";
 import {AlertCircle} from "lucide-react";
@@ -20,8 +19,11 @@ import {useForm} from "react-hook-form";
 import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {useQuery} from "@tanstack/react-query";
-import {getCompany} from "@/services/company/companyApi";
+import {getCompany, putCompany} from "@/services/company/companyApi";
 import {useAuth} from "@/contexts/auth-context";
+import React, {ChangeEvent, useEffect, useState} from "react";
+import {ICompany} from "@/types/company";
+import { useToast } from "@/hooks/use-toast";
 
 // Currency data
 const popularCurrencies = [
@@ -183,66 +185,202 @@ const otherCurrencies = [
     {value: "ZWL", label: "Zimbabwean Dollar (ZWL)"},
 ]
 
-// Country data
-const commonCountries = [
-    "United States",
-    "United Kingdom",
-    "Canada",
-    "Australia",
-    "Germany",
-    "France",
-    "Japan",
-    "China",
-    "India",
-    "Brazil",
-]
-
-const caribbeanCountries = [
-    "Antigua and Barbuda",
-    "Bahamas",
-    "Barbados",
-    "Cuba",
-    "Dominica",
-    "Dominican Republic",
-    "Grenada",
-    "Haiti",
-    "Jamaica",
-    "Puerto Rico",
-    "Saint Kitts and Nevis",
-    "Saint Lucia",
-    "Saint Vincent and the Grenadines",
-    "Trinidad and Tobago",
-]
+const countries = [
+    { title: "Argentina", code: "AR" },
+    { title: "Australia", code: "AU" },
+    { title: "Austria", code: "AT" },
+    { title: "Belgium", code: "BE" },
+    { title: "Brazil", code: "BR" },
+    { title: "Bulgaria", code: "BG" },
+    { title: "Canada", code: "CA" },
+    { title: "Chile", code: "CL" },
+    { title: "China", code: "CN" },
+    { title: "Croatia", code: "HR" },
+    { title: "Cyprus", code: "CY" },
+    { title: "Czech Republic", code: "CZ" },
+    { title: "Denmark", code: "DK" },
+    { title: "Egypt", code: "EG" },
+    { title: "Estonia", code: "EE" },
+    { title: "Finland", code: "FI" },
+    { title: "France", code: "FR" },
+    { title: "Germany", code: "DE" },
+    { title: "Greece", code: "GR" },
+    { title: "Hungary", code: "HU" },
+    { title: "Iceland", code: "IS" },
+    { title: "India", code: "IN" },
+    { title: "Ireland", code: "IE" },
+    { title: "Israel", code: "IL" },
+    { title: "Italy", code: "IT" },
+    { title: "Japan", code: "JP" },
+    { title: "Latvia", code: "LV" },
+    { title: "Lithuania", code: "LT" },
+    { title: "Luxembourg", code: "LU" },
+    { title: "Malta", code: "MT" },
+    { title: "Mexico", code: "MX" },
+    { title: "Netherlands", code: "NL" },
+    { title: "New Zealand", code: "NZ" },
+    { title: "Norway", code: "NO" },
+    { title: "Poland", code: "PL" },
+    { title: "Portugal", code: "PT" },
+    { title: "Romania", code: "RO" },
+    { title: "Russia", code: "RU" },
+    { title: "Saudi Arabia", code: "SA" },
+    { title: "Singapore", code: "SG" },
+    { title: "Slovakia", code: "SK" },
+    { title: "Slovenia", code: "SI" },
+    { title: "South Africa", code: "ZA" },
+    { title: "South Korea", code: "KR" },
+    { title: "Spain", code: "ES" },
+    { title: "Sweden", code: "SE" },
+    { title: "Switzerland", code: "CH" },
+    { title: "Turkey", code: "TR" },
+    { title: "United Arab Emirates", code: "AE" },
+    { title: "United Kingdom", code: "GB" },
+    { title: "United States", code: "US" }
+].sort((a, b) => a.title.localeCompare(b.title));
 
 const formInfoSchema = z.object({
     name: z.string(),
     trading_name: z.string(),
     vat_number: z.string(),
     currency: z.string(),
-    number_of_locations: z.string(),
+    number_of_locations: z.number(),
+})
+
+const formAddressSchema = z.object({
+    street_address: z.string(),
+    state_address: z.string(),
+    zip_code: z.string(),
+    country: z.string(),
 })
 
 export default function CompanyTab() {
-    const {user}  = useAuth();
+    const {user} = useAuth();
+    const {toast} = useToast();
+    const [isLoadingInfo, setIsLoadingInfo] = useState<boolean>(false);
+    const [isLoadingAddress, setIsLoadingAddress] = useState<boolean>(false);
 
-    const { data, isLoading } = useQuery({
+    const {data, isLoading} = useQuery({
         queryKey: ['company'],
-        queryFn: () => getCompany(user?.company_id || "")
+        queryFn: () => getCompany(user?.company_id || ""),
     });
 
     const formInfo = useForm<z.infer<typeof formInfoSchema>>({
         resolver: zodResolver(formInfoSchema),
         defaultValues: {
-            name: "",
-            trading_name: "",
-            vat_number: "",
-            currency: "",
-            number_of_locations: ""
+            name: data?.name || "",
+            trading_name: data?.trading_name || "",
+            vat_number: data?.vat_number || "",
+            currency: data?.currency || "",
+            number_of_locations: data?.number_of_locations || 0
         },
+    })
+    const formAddress = useForm<z.infer<typeof formAddressSchema>>({
+        resolver: zodResolver(formAddressSchema),
+        defaultValues: {
+            street_address: data?.street_address || "",
+            state_address: data?.state_address || "",
+            zip_code: data?.zip_code || "",
+            country: data?.country || "",
+        }
     })
 
     async function onSubmitInfo(values: z.infer<typeof formInfoSchema>) {
+        if (data) {
+            try {
+                setIsLoadingInfo(true);
+                const updatedData: ICompany = {
+                    ...data as ICompany,
+                    ...values,
+                    number_of_locations: Number(values.number_of_locations),
+                    updated_at: new Date().toISOString()
+                };
 
+                const response: ICompany = await putCompany(updatedData);
+
+                if (response?.id) {
+                    toast({
+                        title: "Company info updated",
+                        description: "Company info updated successfully",
+                    });
+                } else {
+                    toast({
+                        title: "Error",
+                        description: "Company info not updated",
+                    });
+                }
+            } catch (e: any) {
+                console.log(e);
+                toast({
+                    title: "Error",
+                    description: e?.message || "Something went wrong. Please try again later.",
+                });
+            } finally {
+                setIsLoadingInfo(false);
+            }
+        }
+    }
+
+    async function onSubmitAddress(values: z.infer<typeof formAddressSchema>) {
+        if (data) {
+            try {
+                setIsLoadingAddress(true);
+                const updatedData: ICompany = {
+                    ...data as ICompany,
+                    ...values,
+                    updated_at: new Date().toISOString()
+                };
+
+                const response: ICompany = await putCompany(updatedData);
+
+                if (response?.id) {
+                    toast({
+                        title: "Company address updated",
+                        description: "Company address updated successfully",
+                    });
+                } else {
+                    toast({
+                        title: "Error",
+                        description: "Company address not updated",
+                    });
+                }
+            } catch (e: any) {
+                console.log(e);
+                toast({
+                    title: "Error",
+                    description: e?.message || "Something went wrong. Please try again later.",
+                });
+            } finally {
+                setIsLoadingAddress(false);
+            }
+        }
+    }
+
+    useEffect(() => {
+        if (data) {
+            formInfo.reset({
+                name: data?.name || "",
+                trading_name: data?.trading_name || "",
+                vat_number: data?.vat_number || "",
+                currency: data?.currency || "",
+                number_of_locations: data?.number_of_locations || 0
+            })
+
+            formAddress.reset({
+                street_address: data?.street_address || "",
+                state_address: data?.state_address || "",
+                zip_code: data?.zip_code || "",
+                country: data?.country || "",
+            })
+        }
+    }, [data]);
+
+    if (isLoading && !data) {
+        return (
+            <div className="flex min-h-screen items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+            </div>
+        );
     }
 
     return (
@@ -312,9 +450,11 @@ export default function CompanyTab() {
                                         <FormItem className="space-y-2">
                                             <FormLabel>Currency</FormLabel>
                                             <FormControl>
-                                                <Select defaultValue={field.value}>
+                                                <Select onValueChange={(value: string) => {
+                                                    if (value.length) field.onChange(value)
+                                                }} value={field.value}>
                                                     <SelectTrigger id="currency">
-                                                        <SelectValue placeholder="Select currency"/>
+                                                        <SelectValue placeholder={field.value || "Select currency"}/>
                                                     </SelectTrigger>
                                                     <SelectContent className="max-h-[300px]">
                                                         <SelectGroup>
@@ -362,7 +502,13 @@ export default function CompanyTab() {
                                     <FormItem className="space-y-2">
                                         <FormLabel>Number of Locations</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Enter number of locations" {...field} />
+                                            <Input
+                                                {...field}
+                                                placeholder="Enter number of locations"
+                                                type="number"
+                                                min={0}
+                                                onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                                            />
                                         </FormControl>
                                         <FormDescription>
                                             Enter the number of physical locations your business operates
@@ -373,7 +519,7 @@ export default function CompanyTab() {
                             />
                         </CardContent>
                         <CardFooter>
-                            <Button className="bg-orange-500 hover:bg-orange-600">
+                            <Button className="bg-orange-500 hover:bg-orange-600" disabled={isLoadingInfo}>
                                 Save Changes
                             </Button>
                         </CardFooter>
@@ -381,75 +527,92 @@ export default function CompanyTab() {
                 </form>
             </Form>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Company Address</CardTitle>
-                    <CardDescription>Update your company address</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="address">Street Address</Label>
-                        <Input id="address"/>
-                    </div>
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <div className="space-y-2">
-                            <Label htmlFor="city" className="mb-1 block text-sm font-medium text-gray-700">
-                                City/Town
-                            </Label>
-                            <Input id="city"/>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="state">State/Province</Label>
-                            <Input id="state"/>
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <div className="space-y-2">
-                            <Label htmlFor="postalCode"
-                                   className="mb-1 block text-sm font-medium text-gray-700">
-                                Postal/ZIP Code
-                            </Label>
-                            <Input id="postalCode"/>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="country">Country</Label>
-                            <Select defaultValue="United States">
-                                <SelectTrigger id="country">
-                                    <SelectValue placeholder="Select country"/>
-                                </SelectTrigger>
-                                <SelectContent className="max-h-[300px]">
-                                    <div className="p-1 text-xs font-medium text-gray-500">Common Countries
-                                    </div>
-                                    {commonCountries.map((country) => (
-                                        <SelectItem key={country} value={country}>
-                                            {country}
-                                        </SelectItem>
-                                    ))}
-
-                                    <div className="p-1 text-xs font-medium text-gray-500">Caribbean Countries
-                                    </div>
-                                    {caribbeanCountries.map((country) => (
-                                        <SelectItem key={country} value={country}>
-                                            {country}
-                                        </SelectItem>
-                                    ))}
-
-                                    <div className="p-1 text-xs font-medium text-gray-500">All Countries</div>
-                                    {/* This would be a long list of countries - abbreviated for brevity */}
-                                    <SelectItem value="Afghanistan">Afghanistan</SelectItem>
-                                    <SelectItem value="Albania">Albania</SelectItem>
-                                    <SelectItem value="Algeria">Algeria</SelectItem>
-                                    {/* ... more countries would go here ... */}
-                                    <SelectItem value="Zimbabwe">Zimbabwe</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                </CardContent>
-                <CardFooter>
-                    <Button className="bg-orange-500 hover:bg-orange-600">Save Changes</Button>
-                </CardFooter>
-            </Card>
+            <Form {...formAddress}>
+                <form onSubmit={formAddress.handleSubmit(onSubmitAddress)}>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Company Address</CardTitle>
+                            <CardDescription>Update your company address</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <FormField
+                                    control={formAddress.control}
+                                    name="street_address"
+                                    render={({field}) => (
+                                        <FormItem className="space-y-2">
+                                            <FormLabel>Street Address</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Enter street address" {...field} />
+                                            </FormControl>
+                                            <FormMessage/>
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={formAddress.control}
+                                    name="state_address"
+                                    render={({field}) => (
+                                        <FormItem className="space-y-2">
+                                            <FormLabel>State/Province</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Enter state/province" {...field} />
+                                            </FormControl>
+                                            <FormMessage/>
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <FormField
+                                    control={formAddress.control}
+                                    name="zip_code"
+                                    render={({field}) => (
+                                        <FormItem className="space-y-2">
+                                            <FormLabel>Postal/ZIP Code</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Enter postal/zip code" {...field} />
+                                            </FormControl>
+                                            <FormMessage/>
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={formAddress.control}
+                                    name="country"
+                                    render={({field}) => (
+                                        <FormItem className="space-y-2">
+                                            <FormLabel>Country</FormLabel>
+                                            <FormControl>
+                                                <Select onValueChange={(value: string) => {
+                                                    if (value.length) field.onChange(value)
+                                                }} value={field.value}>
+                                                    <SelectTrigger id="country">
+                                                        <SelectValue placeholder="Select country"/>
+                                                    </SelectTrigger>
+                                                    <SelectContent className="max-h-[300px]">
+                                                        {countries.map((country, id) => (
+                                                            <SelectItem key={id} value={country.code}>
+                                                                {country.title}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </FormControl>
+                                            <FormMessage/>
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        </CardContent>
+                        <CardFooter>
+                            <Button className="bg-orange-500 hover:bg-orange-600" disabled={isLoadingAddress}>
+                                Save Changes
+                            </Button>
+                        </CardFooter>
+                    </Card>
+                </form>
+            </Form>
         </>
     )
 }

@@ -38,7 +38,8 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     console.log("error", error);
     if (error?.response?.status === 401) {
-      await axios.post(`${BASE_URL}refresh`);
+      // window.location.replace("/session/refresh");
+      await axios.get(`${BASE_URL}auth/session/refresh`);
     }
     Promise.reject(error)
   }
