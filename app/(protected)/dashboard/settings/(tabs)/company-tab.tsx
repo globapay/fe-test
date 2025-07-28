@@ -18,7 +18,7 @@ import {z} from "zod";
 import {useForm} from "react-hook-form";
 import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {zodResolver} from "@hookform/resolvers/zod";
-import {useQuery} from "@tanstack/react-query";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {getCompany, putCompany} from "@/services/company/companyApi";
 import {useAuth} from "@/contexts/auth-context";
 import React, {ChangeEvent, useEffect, useState} from "react";
@@ -260,10 +260,35 @@ export default function CompanyTab() {
     const [isLoadingInfo, setIsLoadingInfo] = useState<boolean>(false);
     const [isLoadingAddress, setIsLoadingAddress] = useState<boolean>(false);
 
+    const queryClient = useQueryClient();
     const {data, isLoading} = useQuery({
         queryKey: ['company'],
         queryFn: () => getCompany(user?.company_id || ""),
     });
+    const mutation = useMutation({
+        mutationFn: putCompany,
+        onSuccess: (data: ICompany) => {
+            if (data?.id) {
+                queryClient.setQueryData(['company'], data);
+                toast({
+                    title: "Company info updated",
+                    description: "Company info updated successfully",
+                });
+            } else {
+                toast({
+                    title: "Error",
+                    description: "Company info not updated",
+                });
+            }
+        },
+        onError: (e: Error) => {
+            console.log(e);
+            toast({
+                title: "Error",
+                description: e?.message || "Something went wrong. Please try again later.",
+            });
+        }
+    })
 
     const formInfo = useForm<z.infer<typeof formInfoSchema>>({
         resolver: zodResolver(formInfoSchema),
@@ -287,72 +312,32 @@ export default function CompanyTab() {
 
     async function onSubmitInfo(values: z.infer<typeof formInfoSchema>) {
         if (data) {
-            try {
-                setIsLoadingInfo(true);
-                const updatedData: ICompany = {
-                    ...data as ICompany,
-                    ...values,
-                    number_of_locations: Number(values.number_of_locations),
-                    updated_at: new Date().toISOString()
-                };
+            setIsLoadingInfo(true);
+            const updatedData: ICompany = {
+                ...data as ICompany,
+                ...values,
+                number_of_locations: Number(values.number_of_locations),
+                updated_at: new Date().toISOString()
+            };
 
-                const response: ICompany = await putCompany(updatedData);
+            mutation.mutate(updatedData);
 
-                if (response?.id) {
-                    toast({
-                        title: "Company info updated",
-                        description: "Company info updated successfully",
-                    });
-                } else {
-                    toast({
-                        title: "Error",
-                        description: "Company info not updated",
-                    });
-                }
-            } catch (e: any) {
-                console.log(e);
-                toast({
-                    title: "Error",
-                    description: e?.message || "Something went wrong. Please try again later.",
-                });
-            } finally {
-                setIsLoadingInfo(false);
-            }
+            setIsLoadingInfo(false);
         }
     }
 
     async function onSubmitAddress(values: z.infer<typeof formAddressSchema>) {
         if (data) {
-            try {
-                setIsLoadingAddress(true);
-                const updatedData: ICompany = {
-                    ...data as ICompany,
-                    ...values,
-                    updated_at: new Date().toISOString()
-                };
+            setIsLoadingAddress(true);
+            const updatedData: ICompany = {
+                ...data as ICompany,
+                ...values,
+                updated_at: new Date().toISOString()
+            };
 
-                const response: ICompany = await putCompany(updatedData);
+            mutation.mutate(updatedData);
 
-                if (response?.id) {
-                    toast({
-                        title: "Company address updated",
-                        description: "Company address updated successfully",
-                    });
-                } else {
-                    toast({
-                        title: "Error",
-                        description: "Company address not updated",
-                    });
-                }
-            } catch (e: any) {
-                console.log(e);
-                toast({
-                    title: "Error",
-                    description: e?.message || "Something went wrong. Please try again later.",
-                });
-            } finally {
-                setIsLoadingAddress(false);
-            }
+            setIsLoadingAddress(false);
         }
     }
 
@@ -519,7 +504,7 @@ export default function CompanyTab() {
                             />
                         </CardContent>
                         <CardFooter>
-                            <Button className="bg-orange-500 hover:bg-orange-600" disabled={isLoadingInfo}>
+                            <Button className="bg-orange-500 hover:bg-orange-600" disabled={isLoadingInfo || !formInfo.formState.isDirty}>
                                 Save Changes
                             </Button>
                         </CardFooter>
@@ -606,7 +591,7 @@ export default function CompanyTab() {
                             </div>
                         </CardContent>
                         <CardFooter>
-                            <Button className="bg-orange-500 hover:bg-orange-600" disabled={isLoadingAddress}>
+                            <Button className="bg-orange-500 hover:bg-orange-600" disabled={isLoadingAddress || !formAddress.formState.isDirty}>
                                 Save Changes
                             </Button>
                         </CardFooter>
