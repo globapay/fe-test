@@ -58,3 +58,8 @@ export const getSSOUrl = async (): Promise<string> => {
   const response = await axiosInstance.get(`/auth/sso-url`);
   return response.data.data;
 };
+
+export const refreshToken = async (): Promise<string> => {
+  const response = await axiosInstance.get(`/session/refresh`);
+  return response.data;
+};

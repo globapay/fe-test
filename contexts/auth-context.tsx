@@ -31,7 +31,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (isAuth) {
           const merchant: IMerchant = await getMerchantProfile();
           setUser(merchant);
-          console.log(1)
         }
       } catch (error) {
         console.error("Auth initialization error:", error)

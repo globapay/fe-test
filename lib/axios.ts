@@ -1,4 +1,5 @@
 import axios, { AxiosResponse } from "axios";
+import {refreshToken} from "@/services/auth/authApi";
 
 export const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
@@ -36,12 +37,14 @@ axiosInstance.interceptors.request.use((config) => {
 axiosInstance.interceptors.response.use(
   (response) => handleResponse(response),
   async (error) => {
-    console.log("error", error);
-    if (error?.response?.status === 401) {
-      // window.location.replace("/session/refresh");
-      await axios.get(`${BASE_URL}auth/session/refresh`);
+    if (error.response?.status === 401) {
+      if (typeof window !== "undefined") {
+        console.log("error", error);
+        await refreshToken();
+        return await axiosInstance(error.config)
+      }
+      return Promise.reject(error);
     }
-    Promise.reject(error)
   }
 );
 
