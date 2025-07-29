@@ -1,5 +1,5 @@
 import {Palette} from "lucide-react";
-import React, {useCallback, useState} from "react";
+import React, {useCallback, useRef, useState} from "react";
 import {Dialog, DialogContent, DialogTitle} from "@/components/ui/dialog";
 import Cropper from "react-easy-crop";
 import {Slider} from "@/components/ui/slider";
@@ -9,7 +9,7 @@ import {VisuallyHidden} from "@/components/ui/visually-hidden";
 
 interface Props {
     image: string | null;
-    getCroppedImage: (img: string) => void;
+    getCroppedImage: (img: string | null) => void;
 }
 
 export default function ImageUploadCropped({image, getCroppedImage}: Props) {
@@ -18,6 +18,7 @@ export default function ImageUploadCropped({image, getCroppedImage}: Props) {
     const [zoom, setZoom] = useState(1);
     const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
     const [finalImage, setFinalImage] = useState<string | null>(image);
+    const inputRef = useRef<HTMLInputElement | null>(null);
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -42,11 +43,39 @@ export default function ImageUploadCropped({image, getCroppedImage}: Props) {
         setImageSrc(null);
     };
 
+    const onDelete = () => {
+        setImageSrc(null);
+        setCroppedAreaPixels(null);
+        setFinalImage(null);
+        getCroppedImage(null);
+    }
+
     return (
         <div>
             {finalImage ? (
-                <div>
+                <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
                     <img src={finalImage} alt="Cropped" className="w-48 h-48 object-cover rounded-xl"/>
+                    <div className="flex flex-row md:flex-col gap-3 w-full md:w-fit">
+                        <Button
+                            variant="outline"
+                            className="border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white w-full"
+                            onClick={() => inputRef.current?.click()}
+                        >
+                            Change
+                        </Button>
+                        <Button variant="destructiveOutline" className="w-full" onClick={onDelete}>
+                            Delete
+                        </Button>
+                        <input
+                            ref={inputRef}
+                            id="file-upload"
+                            name="file-upload"
+                            type="file"
+                            className="sr-only"
+                            accept=".jpg,.jpeg,.png,.pdf,.gg"
+                            onChange={handleFileChange}
+                        />
+                    </div>
                 </div>
             ) : (
                 <div
@@ -60,6 +89,7 @@ export default function ImageUploadCropped({image, getCroppedImage}: Props) {
                             >
                                 <span>Upload</span>
                                 <input
+                                    ref={inputRef}
                                     id="file-upload"
                                     name="file-upload"
                                     type="file"

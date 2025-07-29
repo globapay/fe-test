@@ -47,7 +47,7 @@ export default function BrandingTab() {
 
     const [croppedImage, setCroppedImage] = useState<string | null>(data?.logo || null);
 
-    const handleGetCroppedImage = (croppedImg: string) => {
+    const handleGetCroppedImage = (croppedImg: string | null) => {
         setCroppedImage(croppedImg);
     }
 
@@ -77,7 +77,10 @@ export default function BrandingTab() {
             </CardHeader>
             <CardContent className="space-y-4">
                 <div className="flex flex-col gap-4">
-                    <ImageUploadCropped image={croppedImage} getCroppedImage={(value: string) => handleGetCroppedImage(value)} />
+                    <ImageUploadCropped
+                        image={croppedImage}
+                        getCroppedImage={(value: string | null) => handleGetCroppedImage(value)}
+                    />
 
                     <div className="text-sm text-gray-500">
                         <p>Your logo will appear on:</p>
@@ -90,7 +93,8 @@ export default function BrandingTab() {
                 </div>
             </CardContent>
             <CardFooter>
-                <Button className="bg-orange-500 hover:bg-orange-600" disabled={data?.logo === croppedImage} onClick={onSubmit}>
+                <Button className="bg-orange-500 hover:bg-orange-600" disabled={data?.logo === croppedImage}
+                        onClick={onSubmit}>
                     Save Changes
                 </Button>
             </CardFooter>
