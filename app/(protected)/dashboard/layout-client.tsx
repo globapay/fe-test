@@ -12,6 +12,7 @@ import NavbarLink from "@/components/navbar-link";
 import footerLogo from "@/public/globagift-footer.png";
 import {Sheet, SheetContent, SheetTitle, SheetTrigger} from "@/components/ui/sheet";
 import {VisuallyHidden} from "@/components/ui/visually-hidden";
+import logo from "@/public/globagift-logo.png";
 
 const allowedPathname: string[] = ["/dashboard/settings"];
 
@@ -41,9 +42,13 @@ export function DashboardLayoutClient({children}: { children: ReactNode }) {
             {allowedPathname.includes(pathname) && (
                 <aside className="hidden w-64 flex-col bg-white shadow-sm md:flex">
                     {pathname.includes("/dashboard/settings") && (
-                        <div className="flex h-16 items-center border-b px-6">
+                        <div className="flex h-16 items-center border-b">
                             <Link href="/app/(protected)/dashboard/settings" className="flex items-center">
-                                <span className="text-xl font-bold text-orange-500">GiftFlow</span>
+                                <img
+                                    alt="Globagift-logo"
+                                    src={logo.src}
+                                    className="h-[100px] w-auto"
+                                />
                             </Link>
                         </div>
                     )}
@@ -80,7 +85,11 @@ export function DashboardLayoutClient({children}: { children: ReactNode }) {
                     {pathname.includes("/dashboard/gifts") && (
                         <div className="hidden md:flex h-16 items-center border-b">
                             <Link href="/app/(protected)/dashboard/settings" className="flex items-center">
-                                <span className="text-xl font-bold text-orange-500">GiftFlow</span>
+                                <img
+                                    alt="Globagift-logo"
+                                    src={logo.src}
+                                    className="h-[100px] w-auto"
+                                />
                             </Link>
                         </div>
                     )}
@@ -96,9 +105,13 @@ export function DashboardLayoutClient({children}: { children: ReactNode }) {
                                 <VisuallyHidden>
                                     <SheetTitle>Toggle menu</SheetTitle>
                                 </VisuallyHidden>
-                                <div className="flex h-16 items-center border-b px-6">
+                                <div className="flex h-16 items-center border-b">
                                     <Link href="/app/(protected)/dashboard/settings" className="flex items-center">
-                                        <span className="text-xl font-bold text-orange-500">GiftFlow</span>
+                                        <img
+                                            alt="Globagift-logo"
+                                            src={logo.src}
+                                            className="h-[80px] w-auto"
+                                        />
                                     </Link>
                                 </div>
                                 <nav className="flex flex-1 flex-col p-4 h-full justify-between">

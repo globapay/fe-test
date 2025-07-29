@@ -92,7 +92,7 @@ type FormData = z.infer<typeof form1Schema> &
 
 
 export default function RegisterPage() {
-    const [step, setStep] = useState<number>(2);
+    const [step, setStep] = useState<number>(0);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const router = useRouter();
     const {toast} = useToast();

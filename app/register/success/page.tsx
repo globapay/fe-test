@@ -96,7 +96,6 @@ export default function RegisterSuccessPage() {
             </p>
             <ul className="list-disc pl-5 mt-2 text-left">
               <li>Check your spam or junk folder</li>
-              <li>Add no-reply@giftflow.com to your contacts</li>
               <li>Use the button below to request a new verification email</li>
             </ul>
           </AlertDescription>
