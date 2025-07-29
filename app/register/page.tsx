@@ -63,25 +63,14 @@ const form4Schema = z
             .boolean()
             .refine((val) => val, { message: "You must agree to the terms" }),
     })
-    .superRefine((data, ctx) => {
-        const isPasswordValid =
-            data.password.length >= 10 &&
-            /[A-Z]/.test(data.password) &&
-            /\d/.test(data.password);
-
-        // Якщо пароль валідний і підтвердження заповнене, але не збігаються — помилка
-        if (
-            isPasswordValid &&
-            data.password_confirm.length > 0 &&
-            data.password !== data.password_confirm
-        ) {
-            ctx.addIssue({
-                code: "custom",
-                message: "Passwords do not match",
-                path: ["password_confirm"],
-            });
+    .refine(
+        (data) =>
+            !data.password || !data.password_confirm || data.password === data.password_confirm,
+        {
+            message: "Passwords do not match",
+            path: ["password_confirm"],
         }
-    });
+    );
 
 const stepSchemas = [form1Schema, form2Schema, form3Schema, form4Schema];
 
@@ -138,7 +127,11 @@ export default function RegisterPage() {
         setStep((prevStep: number) => prevStep - 1);
     };
 
-    const handleSubmit = async (values: FormData) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        if (!form.formState.isDirty) return;
+
         setIsLoading(true);
         const registrationData = form.getValues();
 
@@ -223,7 +216,7 @@ export default function RegisterPage() {
                     </div>
 
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(handleSubmit)}>
+                        <form onSubmit={handleSubmit}>
                             {steps[step]}
 
                             <div className="mt-8 flex justify-between overflow-visible">
