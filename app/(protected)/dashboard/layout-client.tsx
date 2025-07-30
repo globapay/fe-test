@@ -159,7 +159,7 @@ export function DashboardLayoutClient({children}: { children: ReactNode }) {
                 </header>
 
                 {/* Page Content */}
-                <main className="flex-1 overflow-auto p-6">{children}</main>
+                <main className="min-h-screen flex flex-col">{children}</main>
 
                 {/* Footer */}
                 <footer className="bg-white p-6">
