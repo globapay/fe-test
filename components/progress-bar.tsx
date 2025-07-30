@@ -4,7 +4,7 @@ interface ProgressBarProps {
 }
 
 export default function ProgressBar({ currentStep, totalSteps }: ProgressBarProps) {
-  const progress = (currentStep / totalSteps) * 100
+  const progress: number = (currentStep / (totalSteps - 1)) * 100
 
   return (
     <div className="relative pt-4">

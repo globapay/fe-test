@@ -2,7 +2,7 @@ import React from 'react';
 
 function Layout({children}: {children: React.ReactNode}) {
     return (
-        <div className="flex-1 overflow-auto min-h-auto p-6">{children}</div>
+        <div className="min-h-screen flex flex-col">{children}</div>
     );
 }
 

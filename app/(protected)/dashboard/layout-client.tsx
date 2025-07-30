@@ -84,7 +84,7 @@ export function DashboardLayoutClient({children}: { children: ReactNode }) {
                 <header className="flex h-16 items-center justify-between border-b bg-white px-6">
                     {pathname.includes("/dashboard/gifts") && (
                         <div className="hidden md:flex h-16 items-center border-b">
-                            <Link href="/app/(protected)/dashboard/settings" className="flex items-center">
+                            <Link href="/dashboard/settings" className="flex items-center">
                                 <img
                                     alt="Globagift-logo"
                                     src={logo.src}
@@ -106,7 +106,7 @@ export function DashboardLayoutClient({children}: { children: ReactNode }) {
                                     <SheetTitle>Toggle menu</SheetTitle>
                                 </VisuallyHidden>
                                 <div className="flex h-16 items-center border-b">
-                                    <Link href="/app/(protected)/dashboard/settings" className="flex items-center">
+                                    <Link href="/dashboard/settings" className="flex items-center">
                                         <img
                                             alt="Globagift-logo"
                                             src={logo.src}
@@ -159,7 +159,7 @@ export function DashboardLayoutClient({children}: { children: ReactNode }) {
                 </header>
 
                 {/* Page Content */}
-                <main className="min-h-screen flex flex-col">{children}</main>
+                <main className="flex-1 flex flex-col">{children}</main>
 
                 {/* Footer */}
                 <footer className="bg-white p-6">
@@ -167,7 +167,7 @@ export function DashboardLayoutClient({children}: { children: ReactNode }) {
                         <div className="flex flex-col md:flex-row justify-between items-start gap-4">
                             <div className="flex gap-4 w-full">
                                 <div className="w-fit">
-                                    <Link href="/app.globagift.io">
+                                    <Link href="/dashboard/settings">
                                         <img alt="Globagift-footer-logo" src={footerLogo.src}
                                              className="aspect-square w-[100px] object-cover"/>
                                     </Link>

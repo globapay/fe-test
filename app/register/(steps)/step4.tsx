@@ -105,6 +105,7 @@ export default function Step4() {
                         <FormItem>
                             <FormControl>
                                 <Checkbox
+                                    checked={field.value}
                                     onCheckedChange={() => field.onChange(!field.value)}
                                     className="h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500"
                                     {...field}

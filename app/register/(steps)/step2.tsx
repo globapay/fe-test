@@ -94,17 +94,15 @@ export default function Step2() {
                         <FormItem className="space-y-2">
                             <FormLabel>Currency</FormLabel>
                             <FormControl>
-                                <Select onValueChange={(value: string) => {
-                                    if (value.length) field.onChange(value)
-                                }} value={field.value}>
+                                <Select onValueChange={field.onChange} {...field}>
                                     <SelectTrigger id="currency">
                                         <SelectValue placeholder={field.value || "Select currency"}/>
                                     </SelectTrigger>
                                     <SelectContent className="max-h-[300px]">
                                         <SelectGroup>
-                                            <SelectLabel
-                                                className="p-1 text-xs font-medium text-gray-500">Popular
-                                                Currencies</SelectLabel>
+                                            <SelectLabel className="p-1 text-xs font-medium text-gray-500">
+                                                Popular Currencies
+                                            </SelectLabel>
                                             {popularCurrencies.map((currency) => (
                                                 <SelectItem key={currency.value} value={currency.value}>
                                                     {currency.label}
@@ -112,9 +110,9 @@ export default function Step2() {
                                             ))}
                                         </SelectGroup>
                                         <SelectGroup>
-                                            <SelectLabel
-                                                className="p-1 text-xs font-medium text-gray-500">Caribbean
-                                                Currencies</SelectLabel>
+                                            <SelectLabel className="p-1 text-xs font-medium text-gray-500">
+                                                Caribbean Currencies
+                                            </SelectLabel>
                                             {caribbeanCurrencies.map((currency) => (
                                                 <SelectItem key={currency.value} value={currency.value}>
                                                     {currency.label}
@@ -122,9 +120,9 @@ export default function Step2() {
                                             ))}
                                         </SelectGroup>
                                         <SelectGroup>
-                                            <SelectLabel
-                                                className="p-1 text-xs font-medium text-gray-500">Other
-                                                Currencies</SelectLabel>
+                                            <SelectLabel className="p-1 text-xs font-medium text-gray-500">
+                                                Other Currencies
+                                            </SelectLabel>
                                             {otherCurrencies.map((currency) => (
                                                 <SelectItem key={currency.value} value={currency.value}>
                                                     {currency.label}

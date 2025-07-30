@@ -109,7 +109,7 @@ export default function RegisterPage() {
             country: "",
             agree_terms: false,
         },
-        mode: "onBlur",
+        mode: "onChange",
     });
 
 
@@ -127,58 +127,58 @@ export default function RegisterPage() {
         setStep((prevStep: number) => prevStep - 1);
     };
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
+    const handleSubmit = async () => {
+        const valid: boolean = await form.trigger();
 
-        if (!form.formState.isDirty) return;
+        if (valid) {
+            setIsLoading(true);
+            const registrationData = form.getValues();
 
-        setIsLoading(true);
-        const registrationData = form.getValues();
+            const registerPayload = {
+                merchant: {
+                    first_name: registrationData.first_name,
+                    last_name: registrationData.last_name,
+                    email: registrationData.email,
+                    password: registrationData.password,
+                    phone: registrationData.phone || "",
+                },
+                company: {
+                    name: registrationData.name,
+                    trading_name: registrationData.trading_name,
+                    vat_number: registrationData.vat_number,
+                    currency: registrationData.currency,
+                    number_of_locations: parseInt(registrationData.number_of_locations || "0"),
+                    street_address: registrationData.street_address,
+                    state_address: registrationData.state_address,
+                    zip_code: registrationData.zip_code,
+                    country: registrationData.country,
+                },
+            };
 
-        const registerPayload = {
-            merchant: {
-                first_name: registrationData.first_name,
-                last_name: registrationData.last_name,
-                email: registrationData.email,
-                password: registrationData.password,
-                phone: registrationData.phone || "",
-            },
-            company: {
-                name: registrationData.name,
-                trading_name: registrationData.trading_name,
-                vat_number: registrationData.vat_number,
-                currency: registrationData.currency,
-                number_of_locations: parseInt(registrationData.number_of_locations || "0"),
-                street_address: registrationData.street_address,
-                state_address: registrationData.state_address,
-                zip_code: registrationData.zip_code,
-                country: registrationData.country,
-            },
-        };
+            try {
+                const response = await authMerchantRegister(registerPayload);
 
-        try {
-            const response = await authMerchantRegister(registerPayload);
+                if (!response?.status) {
+                    throw new Error(response.detail || "Registration failed");
+                }
 
-            if (!response?.status) {
-                throw new Error(response.detail || "Registration failed");
+                if (response?.status === "created") {
+                    toast({
+                        title: "Registration successful",
+                        description: "Please check your email to verify your account",
+                    });
+
+                    // Clear registration data from localStorage
+                    localStorage.removeItem("registrationData");
+                    await login(registrationData.email, registrationData.password);
+                    // Redirect to success page
+                    router.push("/dashboard/settings");
+                }
+            } catch (e) {
+                console.log(e)
+            } finally {
+                setIsLoading(false);
             }
-
-            if (response?.status === "created") {
-                toast({
-                    title: "Registration successful",
-                    description: "Please check your email to verify your account",
-                });
-
-                // Clear registration data from localStorage
-                localStorage.removeItem("registrationData");
-                await login(registrationData.email, registrationData.password);
-                // Redirect to success page
-                router.push("/dashboard/settings");
-            }
-        } catch (e) {
-            console.log(e)
-        } finally {
-            setIsLoading(false);
         }
     }
 
@@ -202,7 +202,7 @@ export default function RegisterPage() {
 
             {/* Progress Steps */}
             <div className="relative mx-auto mt-8 w-full max-w-3xl px-4">
-                <ProgressBar currentStep={step + 1} totalSteps={4}/>
+                <ProgressBar currentStep={step} totalSteps={4}/>
             </div>
 
             {/* Main Form */}
@@ -234,9 +234,10 @@ export default function RegisterPage() {
                                 )}
                                 {(step === steps.length - 1) ? (
                                     <Button
-                                        type="submit"
+                                        type="button"
                                         disabled={isLoading}
                                         className="flex items-center gap-2 rounded-md bg-orange-500 px-6 py-2 text-white hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+                                        onClick={handleSubmit}
                                     >
                                         Register
                                         <ArrowRight className="h-4 w-4"/>
