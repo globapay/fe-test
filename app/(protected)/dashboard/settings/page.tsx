@@ -1,5 +1,7 @@
+'use client';
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { User, Building, Shield, Palette, AlertCircle } from "lucide-react"
+import { User, Building, Shield, Palette } from "lucide-react"
 import ProfileTab from "@/app/(protected)/dashboard/settings/(tabs)/profile-tab";
 import CompanyTab from "@/app/(protected)/dashboard/settings/(tabs)/company-tab";
 import BrandingTab from "@/app/(protected)/dashboard/settings/(tabs)/branding-tab";
